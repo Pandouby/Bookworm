@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct BookwormApp: App {
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Book.self,
@@ -22,11 +23,13 @@ struct BookwormApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+     
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        //.modelContainer(for: Book.self)
     }
 }

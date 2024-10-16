@@ -17,6 +17,17 @@ struct BookDetailsView: View {
             
             VStack {
                 Form {
+                    
+                    // Look into reformating the title and author field
+                    /*
+                    HStack{
+                        Text("First Name:")
+                        TextField(
+                            "Enter First Name..",
+                            text: $book.title
+                        ).padding()
+                    }
+                     */
                    
                     TextField("Title", text: $book.title)
                     
@@ -29,49 +40,47 @@ struct BookDetailsView: View {
                     }
                     .pickerStyle(.navigationLink)
                     
-                    Picker("Status", selection: $book.status) {
-                        ForEach(Status.allCases) { status in
-                            Text(status.rawValue)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    
-                    RatingView($book.rating, maxRating: 5).padding(5)
                     
                     TextField("Pages", value: $book.pages, format: .number).keyboardType(.asciiCapableNumberPad)
-                       
-                    DatePicker(
-                        "Started",
-                        selection: $book.started, displayedComponents: .date
-                    ).onSubmit {
-                        // Handle submission for Started
-                    }
                     
-                    DatePicker(
-                        "Finished",
-                        selection: $book.finished, displayedComponents: .date
-                    ).onSubmit {
-                        // Handle submission for Finished
-                    }
-        
-                    VStack(alignment: .leading){
-                        Text("Notes")
-                        TextEditor(text: $book.notes)
-                            .frame(height: 200)  // Set a height for better visibility
-                            .padding()
-                            .background(Color(UIColor.systemGray6))  // Background for TextEditor
-                            .cornerRadius(5)  // Rounded corners for aesthetics
-                            .onSubmit {
-                                // Handle submission for Notes
+                    Section {
+                        Picker("Status", selection: $book.status) {
+                            ForEach(Status.allCases) { status in
+                                Text(status.rawValue)
                             }
+                        }
+                        .pickerStyle(.menu)
+                        
+                        RatingView($book.rating, maxRating: 5).padding(5)
+                        
+                        DatePicker(
+                            "Started",
+                            selection: $book.started, displayedComponents: .date
+                        ).onSubmit {
+                            // Handle submission for Started
+                        }
+                        
+                        DatePicker(
+                            "Finished",
+                            selection: $book.finished, displayedComponents: .date
+                        ).onSubmit {
+                            // Handle submission for Finished
+                        }
+
+                        VStack(alignment: .leading){
+                            Text("Notes")
+                            TextEditor(text: $book.notes)
+                                .frame(height: 200)  // Set a height for better visibility
+                                .padding()
+                                .background(Color(UIColor.systemGray5))  // Background for TextEditor
+                                .cornerRadius(10)  // Rounded corners for aesthetics
+                        }
                     }
                 }
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-
 }
-
 
 #Preview {
     do {
@@ -85,11 +94,4 @@ struct BookDetailsView: View {
         fatalError("Failed to create model container")
     }
 }
- 
 
-/*
-#Preview {
-    BookDetailsView(book: Book(isbn: "9781784162122", title: "test", author: "test", pages: 201, genre: Genre.comedy))
-        .modelContainer(for: Book.self, inMemory: true)
-}
-*/

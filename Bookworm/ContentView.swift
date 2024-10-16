@@ -18,18 +18,29 @@ struct ContentView: View {
     @State private var scannedCode: String?
     @State private var showBookNotFoundAlert = false
     
+    @State var searchResults: [Book] = []
+    @State var searchQuery: String = ""
+    
+    var isSearching: Bool {
+        return !searchQuery.isEmpty
+    }
+    
     var body: some View {
         NavigationStack {
             List {
-                ForEach(books) { book in
+                ForEach(isSearching ? searchResults : books) { book in
                     NavigationLink(value: book) {
-                        VStack(alignment: .leading) {
-                            Text(book.title).font(.headline)
-                            Text(book.status.rawValue)
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(book.title).font(.headline)
+                                book.author.isEmpty ? Text(" ") : Text(book.author) 
+                            }
+                            
+                            StatusIcon(status: book.status).padding(.leading, 10)
                         }
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: isSearching ? deleteSearchItems : deleteItems )
             }
             .navigationDestination(for: Book.self, destination: BookDetailsView.init)
             .toolbar {
@@ -49,6 +60,15 @@ struct ContentView: View {
                     title: Text("Book could not be found"),
                     message: Text("Please enter the book details manualy")
                 )
+            }
+            .searchable(
+                text: $searchQuery,
+                placement: .automatic,
+                prompt: "Title or Author"
+            )
+            .textInputAutocapitalization(.never)
+            .onChange(of: searchQuery) {
+                self.fetchSearchResults(for: searchQuery)
             }
         }
         .sheet(isPresented: $isShowingScanner) {
@@ -84,6 +104,14 @@ struct ContentView: View {
             }
         }
     }
+    private func deleteSearchItems(offsets: IndexSet) {
+        withAnimation {
+            for index in offsets {
+                modelContext.delete(searchResults[index])
+                searchResults.remove(at: index)
+            }
+        }
+    }
     
     private func handleScan(result: Result<ScanResult, ScanError>) {
         isShowingScanner = false
@@ -96,6 +124,15 @@ struct ContentView: View {
         }
     }
     
+    private func fetchSearchResults(for query: String) {
+        let searchQuery = query.lowercased()  // Make the query case-insensitive
+        
+        searchResults = books.filter { book in
+            book.title.lowercased().contains(searchQuery) ||
+            book.author.lowercased().contains(searchQuery)
+        }
+    }
+
     struct BookResponse: Codable {
         let items: [BookItem]
         let totalItems: Int

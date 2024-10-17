@@ -5,26 +5,28 @@
 //  Created by Silvan Dubach on 09.10.2024.
 //
 
-import SwiftUI
 import AVFoundation
-import SwiftData
 import CodeScanner
+import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var books: [Book]
-    
+
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
     @State private var showBookNotFoundAlert = false
-    
+
+    @State private var isBookSearchShowing = false
+
     @State var searchResults: [Book] = []
     @State var searchQuery: String = ""
-    
+
     var isSearching: Bool {
         return !searchQuery.isEmpty
     }
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -33,16 +35,21 @@ struct ContentView: View {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(book.title).font(.headline)
-                                book.author.isEmpty ? Text(" ") : Text(book.author) 
+                                book.author.isEmpty
+                                    ? Text(" ") : Text(book.author)
                             }
-                            
-                            StatusIcon(status: book.status).padding(.leading, 10)
+
+                            StatusIcon(status: book.status).padding(
+                                .leading, 10)
                         }
                     }
                 }
-                .onDelete(perform: isSearching ? deleteSearchItems : deleteItems )
+                .onDelete(
+                    perform: isSearching ? deleteSearchItems : deleteItems)
             }
-            .navigationDestination(for: Book.self, destination: BookDetailsView.init)
+            .navigationDestination(
+                for: Book.self, destination: BookDetailsView.init
+            )
             .toolbar {
                 ToolbarItem {
                     Button("Scan new Book", systemImage: "barcode.viewfinder") {
@@ -72,31 +79,30 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $isShowingScanner) {
+
             CodeScannerView(
                 codeTypes: [.ean13],
-                scanMode: .oncePerCode,
+                scanMode: .once,
+                //scanInterval: 0.1,
                 showViewfinder: true,
                 simulatedData: "9781784162122",
-                videoCaptureDevice: AVCaptureDevice.zoomedCameraForQRCode(withMinimumCodeSize: 15),
+                videoCaptureDevice: AVCaptureDevice.zoomedCameraForQRCode(
+                    withMinimumCodeSize: 15),
                 completion: handleScan
             )
+
+        }
+        .sheet(isPresented: $isBookSearchShowing) {
+            BookSearchView()
         }
     }
-    
+
     private func addItem() {
         withAnimation {
-            let newItem = Book(
-                isbn: "",
-                title: "New Book",
-                author: "",
-                pages: 0,
-                genre: Genre.nonClassifiable
-            )
-            
-            modelContext.insert(newItem)
+            isBookSearchShowing = true
         }
     }
-    
+
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
@@ -112,10 +118,10 @@ struct ContentView: View {
             }
         }
     }
-    
+
     private func handleScan(result: Result<ScanResult, ScanError>) {
         isShowingScanner = false
-        
+
         switch result {
         case .success(let result):
             getBookData(isbn: result.string)
@@ -123,49 +129,37 @@ struct ContentView: View {
             print("Scanning failed: \(error.localizedDescription)")
         }
     }
-    
+
     private func fetchSearchResults(for query: String) {
         let searchQuery = query.lowercased()  // Make the query case-insensitive
-        
+
         searchResults = books.filter { book in
-            book.title.lowercased().contains(searchQuery) ||
-            book.author.lowercased().contains(searchQuery)
+            book.title.lowercased().contains(searchQuery)
+                || book.author.lowercased().contains(searchQuery)
         }
     }
 
-    struct BookResponse: Codable {
-        let items: [BookItem]
-        let totalItems: Int
-    }
-    
-    struct BookItem: Codable {
-        let volumeInfo: VolumeInfo
-    }
-    
-    struct VolumeInfo: Codable {
-        let title: String
-        let authors: [String]
-        let pageCount: Int
-        let categories: [String]?
-    }
-    
     private func getBookData(isbn: String) {
-        let url = URL(string: "https://www.googleapis.com/books/v1/volumes?q=isbn:\(isbn)")!
-        
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let url = URL(
+            string: "https://www.googleapis.com/books/v1/volumes?q=isbn:\(isbn)"
+        )!
+
+        let task = URLSession.shared.dataTask(with: url) {
+            (data, response, error) in
             guard let data = data else { return }
             print(String(data: data, encoding: .utf8)!)
             do {
-                let jsonData = try JSONDecoder().decode(BookResponse.self, from: data)
-                    
-                if let bookData = jsonData.items.first?.volumeInfo {
-                    let title = bookData.title
-                    let authors = bookData.authors.first ?? "Unknown Author"
-                    let pageCount = bookData.pageCount
+                let jsonData = try JSONDecoder().decode(
+                    BookResponse.self, from: data)
+
+                if let bookData = jsonData.items?.first?.volumeInfo {
+                    let title = bookData.title ?? "N/A"
+                    let authors = bookData.authors?.first ?? "Unknown Author"
+                    let pageCount = bookData.pageCount ?? 0
                     let genre = bookData.categories?.first ?? "Non-Classifiable"
-                    
+
                     print(bookData)
-                    
+
                     let newBook = Book(
                         isbn: isbn,
                         title: title,
@@ -173,19 +167,19 @@ struct ContentView: View {
                         pages: pageCount,
                         genre: Genre(rawValue: genre) ?? Genre.nonClassifiable
                     )
-                    
+
                     modelContext.insert(newBook)
                 } else {
                     print("No book data found for the given ISBN.")
+                    showBookNotFoundAlert = true
                 }
-                
+
             } catch let error {
                 print("Failed to parse Json: \(error)")
                 showBookNotFoundAlert = true
-                addItem()
             }
         }
-        
+
         task.resume()
     }
 }

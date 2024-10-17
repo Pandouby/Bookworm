@@ -61,28 +61,69 @@ enum Status: String, Codable, CaseIterable, Identifiable {
 
 @Model
 class Book {
+    // Generic book data
+    // Can be fetched automaticaly
+    var isbn: String
     var title: String
     var author: String
     var pages: Int
     var genre: Genre
-    var isbn: String
-    
+
+    // These properties are not visable for the user
+    var dateAdded: Date
+    var publishedDate: String?
+    var publisher: String?
+
+    // User specific book data
     var rating: Double
     var status: Status
     var started: Date
     var finished: Date
     var notes: String
-    
-    init(isbn: String, title: String, author: String, pages: Int, genre: Genre, rating: Double = 2.5, started: Date = Date(), finished: Date = Date(), notes: String = "") {
+
+    init(
+        isbn: String, title: String, author: String, pages: Int, genre: Genre,
+        rating: Double = 2.5, started: Date = Date(), finished: Date = Date(),
+        notes: String = "", publishedDate: String? = nil, publisher: String? = nil
+    ) {
         self.isbn = isbn
         self.title = title
         self.author = author
         self.pages = pages
         self.genre = genre
-        self.status = Status.toDo
+
+        self.dateAdded = Date()
+        self.publishedDate = publishedDate
+        self.publisher = publisher
+
         self.rating = rating
+        self.status = Status.toDo
         self.started = started
         self.finished = finished
         self.notes = notes
     }
+}
+
+struct BookResponse: Codable {
+    let items: [BookItem]?
+    let totalItems: Int
+}
+
+struct BookItem: Codable {
+    let volumeInfo: VolumeInfo?
+}
+
+struct VolumeInfo: Codable {
+    let industryIdentifiers: [BookIdentifier]?
+    let title: String?
+    let authors: [String]?
+    let pageCount: Int?
+    let categories: [String]?
+    let publishedDate: String?
+    let publisher: String?
+}
+
+struct BookIdentifier: Codable {
+    let type: String
+    let identifier: String
 }

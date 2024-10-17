@@ -30,6 +30,5 @@ struct BookwormApp: App {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
-        //.modelContainer(for: Book.self)
     }
 }

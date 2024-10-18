@@ -16,14 +16,23 @@ struct BookSearchView: View {
 
     var body: some View {
         NavigationStack {
+            if searchResults.isEmpty {
+                VStack {
+                    Spacer()
+                    Text("Cant find your book")
+                    Button("Add book manually") {
+                        addEmptyBook()
+                    }
+                }
+            }
             List {
                 ForEach(searchResults) { book in
                     HStack {
                         VStack(alignment: .leading) {
                             Text(book.title).font(.headline)
                             book.author.isEmpty
-                            ? Text(" ") : Text(book.author)
-                            
+                                ? Text(" ") : Text(book.author)
+
                         }
                         Spacer()
                     }
@@ -34,7 +43,7 @@ struct BookSearchView: View {
                         print("addded: \(book.title)")
                         dismiss()
                     }
-                    
+
                 }
             }
             .searchable(
@@ -50,7 +59,7 @@ struct BookSearchView: View {
             }
             .toolbar {
                 ToolbarItem {
-                    Button("Close") {dismiss()}
+                    Button("Close") { dismiss() }
                 }
             }
         }
@@ -109,5 +118,11 @@ struct BookSearchView: View {
         }
 
         task.resume()
+    }
+    
+    private func addEmptyBook() {
+        var emptyBook = Book(isbn: "", title: "New Book", author: "Unknown", pages: 0, genre: Genre.nonClassifiable)
+        modelContext.insert(emptyBook)
+        dismiss()
     }
 }

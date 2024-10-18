@@ -62,19 +62,22 @@ struct BookDetailsView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .onChange(of: book.status) {
+                        book.statusOrder = book.status.sortOrder
+                    }
 
                     RatingView($book.rating, maxRating: 5).padding(5)
 
                     DatePicker(
                         "Started",
-                        selection: $book.started, displayedComponents: .date
+                        selection: $book.startedDate, displayedComponents: .date
                     ).onSubmit {
                         // Handle submission for Started
                     }
 
                     DatePicker(
                         "Finished",
-                        selection: $book.finished, displayedComponents: .date
+                        selection: $book.finishedDate, displayedComponents: .date
                     ).onSubmit {
                         // Handle submission for Finished
                     }
@@ -96,7 +99,7 @@ struct BookDetailsView: View {
 
 #Preview {
     do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration(isStoredInMemoryOnly: false)
         let container = try ModelContainer(
             for: Book.self, configurations: config)
 

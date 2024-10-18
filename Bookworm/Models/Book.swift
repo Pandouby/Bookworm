@@ -56,31 +56,37 @@ enum Status: String, Codable, CaseIterable, Identifiable {
     case onPause = "On Pause"
     case inProgress = "In Progress"
     case done = "Done"
+    
+    var sortOrder: Int {
+        switch self {
+        case .toDo: return 0
+        case .onPause: return 1
+        case .inProgress: return 2
+        case .done: return 3
+        }
+    }
+    
     var id: Self { self }
 }
 
 @Model
 class Book {
-    // Generic book data
-    // Can be fetched automaticaly
     var isbn: String
     var title: String
     var author: String
     var pages: Int
     var genre: Genre
-
-    // These properties are not visable for the user
-    var dateAdded: Date
+    
+    var dateAdded: Date = Date()
     var publishedDate: String?
     var publisher: String?
-
-    // User specific book data
-    var rating: Double
-    var status: Status
-    var started: Date
-    var finished: Date
-    var notes: String
-
+    var statusOrder: Int = Status.toDo.sortOrder
+    var rating: Double = 2.5
+    var status: Status = Status.toDo
+    var startedDate: Date = Date()
+    var finishedDate: Date = Date()
+    var notes: String = ""
+    
     init(
         isbn: String, title: String, author: String, pages: Int, genre: Genre,
         rating: Double = 2.5, started: Date = Date(), finished: Date = Date(),
@@ -91,19 +97,10 @@ class Book {
         self.author = author
         self.pages = pages
         self.genre = genre
-
-        self.dateAdded = Date()
         self.publishedDate = publishedDate
         self.publisher = publisher
-
-        self.rating = rating
-        self.status = Status.toDo
-        self.started = started
-        self.finished = finished
-        self.notes = notes
     }
 }
-
 struct BookResponse: Codable {
     let items: [BookItem]?
     let totalItems: Int

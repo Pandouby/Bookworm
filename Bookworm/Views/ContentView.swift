@@ -12,7 +12,13 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var books: [Book]
+    @Query(sort: [
+        SortDescriptor(\Book.statusOrder),
+        SortDescriptor(\Book.finishedDate, order: .reverse),
+        SortDescriptor(\Book.dateAdded, order: .reverse),
+        SortDescriptor(\Book.title),
+    ])
+    private var books: [Book]
 
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
@@ -39,13 +45,26 @@ struct ContentView: View {
                                     ? Text(" ") : Text(book.author)
                             }
 
-                            StatusIcon(status: book.status).padding(
-                                .leading, 10)
+                            StatusIcon(status: book.status)
+                                .padding(.leading, 10)
                         }
                     }
                 }
                 .onDelete(
-                    perform: isSearching ? deleteSearchItems : deleteItems)
+                    perform: isSearching ? deleteSearchItems : deleteItems
+                )
+                // Auto navigate to newly added books
+                /*.navigationDestination(
+                    isPresented: Binding(
+                        get: { selectedBook != nil },  // Navigate if a book is selected
+                        set: { if !$0 { selectedBook = nil } }  // Clear selection after navigating
+                    )
+                ) {
+                    if let book = selectedBook {
+                        BookDetailsView(book: book)
+                    }
+                }
+                 */
             }
             .navigationDestination(
                 for: Book.self, destination: BookDetailsView.init
@@ -79,18 +98,15 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $isShowingScanner) {
-
             CodeScannerView(
                 codeTypes: [.ean13],
                 scanMode: .once,
-                //scanInterval: 0.1,
                 showViewfinder: true,
                 simulatedData: "9781784162122",
                 videoCaptureDevice: AVCaptureDevice.zoomedCameraForQRCode(
                     withMinimumCodeSize: 15),
                 completion: handleScan
             )
-
         }
         .sheet(isPresented: $isBookSearchShowing) {
             BookSearchView()
@@ -110,6 +126,7 @@ struct ContentView: View {
             }
         }
     }
+
     private func deleteSearchItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
@@ -182,9 +199,4 @@ struct ContentView: View {
 
         task.resume()
     }
-}
-
-#Preview {
-    ContentView()
-        .modelContainer(for: Book.self, inMemory: true)
 }

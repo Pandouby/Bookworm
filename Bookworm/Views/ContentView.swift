@@ -26,5 +26,6 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             CustomTabView(tabIndex: $tabIndex)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }

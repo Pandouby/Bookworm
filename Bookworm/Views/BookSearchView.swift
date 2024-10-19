@@ -29,21 +29,40 @@ struct BookSearchView: View {
                 ForEach(searchResults) { book in
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(book.title).font(.headline)
+                            Text(truncatedTitle(book.title, length: 18)).font(.headline)
                             book.author.isEmpty
-                                ? Text(" ") : Text(book.author)
+                            ? Text(" ") : Text(truncatedTitle(book.author, length: 20))
 
                         }
                         Spacer()
+                        VStack(alignment: .trailing) {
+                            Text(truncatedTitle(book.genre.rawValue, length: 20))
+                            book.pages > 0 ? Text("p. \(book.pages)") : Text("")
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
-                    .onTapGesture {
+                    /*
+                     .onTapGesture {
                         modelContext.insert(book)
                         print("addded: \(book.title)")
                         dismiss()
                     }
-
+                     */
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true){
+                        Button("Owned") {
+                            modelContext.insert(book)
+                            print("Add: \(book.title)")
+                            dismiss()
+                        }
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: true){
+                        Button("Want to read") {
+                            // Add functionallity to add to want to read list
+                            print("Want to read: \(book.title)")
+                            dismiss()
+                        }
+                    }
                 }
             }
             .searchable(
@@ -121,8 +140,17 @@ struct BookSearchView: View {
     }
     
     private func addEmptyBook() {
-        var emptyBook = Book(isbn: "", title: "New Book", author: "Unknown", pages: 0, genre: Genre.nonClassifiable)
+        let emptyBook = Book(isbn: "", title: "New Book", author: "Unknown", pages: 0, genre: Genre.nonClassifiable)
         modelContext.insert(emptyBook)
         dismiss()
+    }
+    
+    func truncatedTitle(_ title: String, length: Int) -> String {
+        if title.count > length {
+            let index = title.index(title.startIndex, offsetBy: length)
+            return String(title[..<index]) + "..."
+        } else {
+            return title
+        }
     }
 }

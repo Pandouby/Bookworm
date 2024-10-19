@@ -67,9 +67,9 @@ struct OwnedBooksView: View {
                  }
                  */
             }
-            .navigationDestination(
-                for: Book.self, destination: BookDetailsView.init
-            )
+            .navigationDestination(for: Book.self) { book in
+                BookDetailsView(book: book)
+            }
             .toolbar {
                 ToolbarItem {
                     Button("Scan new Book", systemImage: "barcode.viewfinder") {
@@ -82,6 +82,8 @@ struct OwnedBooksView: View {
                     }
                 }
             }
+            // Turns of the opaque background of the toolbar when content scrolls below it
+            //.toolbarBackground(.hidden, for: .navigationBar)
             .alert(isPresented: $showBookNotFoundAlert) {
                 Alert(
                     title: Text("Book could not be found"),
@@ -108,10 +110,12 @@ struct OwnedBooksView: View {
                     withMinimumCodeSize: 15),
                 completion: handleScan
             )
+            .ignoresSafeArea()
         }
         .sheet(isPresented: $isBookSearchShowing) {
             BookSearchView()
         }
+        .toolbarBackground(.hidden, for: .tabBar)
     }
 
     private func addItem() {

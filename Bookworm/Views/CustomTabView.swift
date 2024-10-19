@@ -19,17 +19,21 @@ struct CustomTabView: View {
         
     var body: some View {
         ZStack {
-            Rectangle()
-                .frame(height: 80)
+            Capsule()
+                .frame(height: 60)
                 .cornerRadius(16)
                 .foregroundColor(Color(.secondarySystemBackground))
                 .shadow(radius: 2)
-                .padding(.horizontal)
+                .padding(.horizontal, 10)
             
             HStack {
                 ForEach(0..<3) { index in
                     Button {
-                        tabIndex = index + 1
+                        if (tabIndex == index + 1) {
+                            
+                        } else {
+                            tabIndex = index + 1
+                        }
                     } label: {
                         VStack() {
                             Image(systemName: tabBarItems[index].iconName)

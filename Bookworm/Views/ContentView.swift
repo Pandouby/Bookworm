@@ -29,3 +29,8 @@ struct ContentView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
+
+#Preview {
+    ContentView()
+}
+

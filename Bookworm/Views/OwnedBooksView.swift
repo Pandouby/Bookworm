@@ -50,6 +50,20 @@ struct OwnedBooksView: View {
                                 .padding(.leading, 10)
                         }
                     }
+                    .swipeActions(edge: .leading, allowsFullSwipe: true){
+                        Button("Done") {
+                            book.status = Status.done
+                            book.statusOrder = book.status.sortOrder
+                        }
+                        .tint(.green)
+                    }
+                    .swipeActions(edge: .leading){
+                        Button("Reading") {
+                            book.status = Status.inProgress
+                            book.statusOrder = book.status.sortOrder
+                        }
+                        .tint(.blue)
+                    }
                 }
                 .onDelete(
                     perform: isSearching ? deleteSearchItems : deleteItems
@@ -205,3 +219,8 @@ struct OwnedBooksView: View {
         task.resume()
     }
 }
+
+#Preview {
+    OwnedBooksView()
+}
+

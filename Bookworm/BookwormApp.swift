@@ -15,7 +15,7 @@ struct BookwormApp: App {
         let schema = Schema([
             Book.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false) // Settin isStoredInMemoryOnly to false breaks the preview for some reason i havent figured out yet. With it set to true SwiftData dosnt work so there is no books being displayed
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true) // Settin isStoredInMemoryOnly to false breaks the preview for some reason i havent figured out yet. With it set to true SwiftData dosnt work so there is no books being displayed
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

@@ -74,15 +74,16 @@ class Book {
     var isbn: String
     var title: String
     var author: String
-    var pages: Int
+    var pageCount: Int
     var genre: Genre
+    var bookDescription: String = ""
     
     var dateAdded: Date = Date()
     var publishedDate: String?
     var publisher: String?
-    var statusOrder: Int = Status.toDo.sortOrder
     var rating: Double = 2.5
     var status: Status = Status.toDo
+    var statusOrder: Int = Status.toDo.sortOrder
     var startedDate: Date = Date()
     var finishedDate: Date = Date()
     var notes: String = ""
@@ -90,15 +91,17 @@ class Book {
     init(
         isbn: String, title: String, author: String, pages: Int, genre: Genre,
         rating: Double = 2.5, started: Date = Date(), finished: Date = Date(),
-        notes: String = "", publishedDate: String? = nil, publisher: String? = nil
+        notes: String = "", publishedDate: String? = nil, publisher: String? = nil,
+        bookDescription: String = ""
     ) {
         self.isbn = isbn
         self.title = title
         self.author = author
-        self.pages = pages
+        self.pageCount = pages
         self.genre = genre
         self.publishedDate = publishedDate
         self.publisher = publisher
+        self.bookDescription = bookDescription
     }
 }
 struct BookResponse: Codable {
@@ -118,6 +121,7 @@ struct VolumeInfo: Codable {
     let categories: [String]?
     let publishedDate: String?
     let publisher: String?
+    let description: String?
 }
 
 struct BookIdentifier: Codable {

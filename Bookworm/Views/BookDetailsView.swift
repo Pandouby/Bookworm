@@ -48,7 +48,7 @@ struct BookDetailsView: View {
                     }
                     .pickerStyle(.navigationLink)
 
-                    TextField("Pages", value: $book.pages, format: .number)
+                    TextField("Pages", value: $book.pageCount, format: .number)
                         .keyboardType(.asciiCapableNumberPad)
                 }
 

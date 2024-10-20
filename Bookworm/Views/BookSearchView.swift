@@ -27,43 +27,51 @@ struct BookSearchView: View {
             }
             List {
                 ForEach(searchResults) { book in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(truncatedTitle(book.title, length: 18)).font(.headline)
-                            book.author.isEmpty
-                            ? Text(" ") : Text(truncatedTitle(book.author, length: 20))
-
+                    NavigationLink(value: book) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(truncatedTitle(book.title, length: 18)).font(.headline)
+                                book.author.isEmpty
+                                ? Text(" ") : Text(truncatedTitle(book.author, length: 20))
+                                
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                Text(truncatedTitle(book.genre.rawValue, length: 20))
+                                book.pageCount > 0 ? Text("p. \(book.pageCount)") : Text("")
+                            }
                         }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text(truncatedTitle(book.genre.rawValue, length: 20))
-                            book.pages > 0 ? Text("p. \(book.pages)") : Text("")
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        /*
+                         .onTapGesture {
+                         modelContext.insert(book)
+                         print("addded: \(book.title)")
+                         dismiss()
+                         }
+                         */
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true){
+                            Button("Owned") {
+                                modelContext.insert(book)
+                                print("Add: \(book.title)")
+                                dismiss()
+                            }
+                            .tint(.blue)
                         }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    /*
-                     .onTapGesture {
-                        modelContext.insert(book)
-                        print("addded: \(book.title)")
-                        dismiss()
-                    }
-                     */
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true){
-                        Button("Owned") {
-                            modelContext.insert(book)
-                            print("Add: \(book.title)")
-                            dismiss()
-                        }
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true){
-                        Button("Want to read") {
-                            // Add functionallity to add to want to read list
-                            print("Want to read: \(book.title)")
-                            dismiss()
+                        .swipeActions(edge: .leading, allowsFullSwipe: true){
+                            Button("Want to read") {
+                                // Add functionallity to add to want to read list
+                                print("Want to read: \(book.title)")
+                                print(book.bookDescription)
+                                dismiss()
+                            }
+                            .tint(.blue)
                         }
                     }
                 }
+            }
+            .navigationDestination(for: Book.self) { book in
+                SearchResultDetailsView(searchResult: book)
             }
             .searchable(
                 text: $searchQuery,
@@ -93,7 +101,7 @@ struct BookSearchView: View {
         let task = URLSession.shared.dataTask(with: url) {
             (data, response, error) in
             guard let data = data else { return }
-            print(String(data: data, encoding: .utf8)!)
+            //print(String(data: data, encoding: .utf8)!)
             do {
                 let jsonData = try JSONDecoder().decode(
                     BookResponse.self, from: data)
@@ -115,6 +123,7 @@ struct BookSearchView: View {
                             bookData?.categories?.first ?? "Non-Classifiable"
                         let publisher = bookData?.publisher ?? ""
                         let publishedDate = bookData?.publishedDate
+                        let bookDescription = bookData?.description
 
                         let newBook = Book(
                             isbn: isbn ?? "",
@@ -124,7 +133,8 @@ struct BookSearchView: View {
                             genre: Genre(rawValue: genre)
                                 ?? Genre.nonClassifiable,
                             publishedDate: publishedDate,
-                            publisher: publisher
+                            publisher: publisher,
+                            bookDescription: bookDescription ?? ""
                         )
 
                         searchResults.append(newBook)
@@ -154,3 +164,8 @@ struct BookSearchView: View {
         }
     }
 }
+
+#Preview {
+    BookSearchView()
+}
+

@@ -11,8 +11,8 @@ struct CustomTabView: View {
     @Binding var tabIndex: Int
     
     let tabBarItems: [(iconName: String, name: String)] = [
-        ("house.fill", "Home"),
-        ("magnifyingglass", "Search"),
+        ("book", "Owned books"),
+        ("magnifyingglass", "Descovery"),
         ("person.fill", "Settings")
     ]
     
@@ -37,7 +37,7 @@ struct CustomTabView: View {
                     } label: {
                         VStack() {
                             Image(systemName: tabBarItems[index].iconName)
-                                .font(.system(size: index + 1 == tabIndex ? 30 : 20))
+                                .font(.system(size: index + 1 == tabIndex ? 30 : 25))
                                 .foregroundColor(index + 1 == tabIndex ? Color.accentColor : Color.gray)
                         }
                     }

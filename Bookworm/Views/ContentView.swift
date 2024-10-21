@@ -14,13 +14,13 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $tabIndex) {
-            OwnedBooksView()
+            BooksView()
                 .tag(1)
             
-            Text("Second tab")
+            Text("Dicovery tab")
                 .tag(2)
             
-            Text("Third tab")
+            Text("Settings tab")
                 .tag(3)
         }
         .overlay(alignment: .bottom) {
@@ -33,4 +33,3 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
-

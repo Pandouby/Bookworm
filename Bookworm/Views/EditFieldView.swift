@@ -44,3 +44,9 @@ struct TextFieldClearButton: ViewModifier {
         }
     }
 }
+
+#Preview {
+    @Previewable @State var inputValue = "Sample Text"
+    
+    return EditFieldView(fieldName: "Test view", inputValue: $inputValue)
+}

@@ -35,41 +35,40 @@ struct OwnedBooksView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(isSearching ? searchResults : books) { book in
-                    NavigationLink(value: book) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(book.title).font(.headline)
-                                book.author.isEmpty
-                                    ? Text(" ") : Text(book.author)
-                            }
+        List {
+            ForEach(isSearching ? searchResults : books) { book in
+                NavigationLink(destination: BookDetailsView(book: book)) {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(book.title).font(.headline)
+                            book.author.isEmpty
+                                ? Text(" ") : Text(book.author)
+                        }
 
-                            StatusIcon(status: book.status)
-                                .padding(.leading, 10)
-                        }
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true){
-                        Button("Done") {
-                            book.status = Status.done
-                            book.statusOrder = book.status.sortOrder
-                        }
-                        .tint(.green)
-                    }
-                    .swipeActions(edge: .leading){
-                        Button("Reading") {
-                            book.status = Status.inProgress
-                            book.statusOrder = book.status.sortOrder
-                        }
-                        .tint(.blue)
+                        StatusIcon(status: book.status)
+                            .padding(.leading, 10)
                     }
                 }
-                .onDelete(
-                    perform: isSearching ? deleteSearchItems : deleteItems
-                )
-                // Auto navigate to newly added books
-                /*.navigationDestination(
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    Button("Done") {
+                        book.status = Status.done
+                        book.statusOrder = book.status.sortOrder
+                    }
+                    .tint(.green)
+                }
+                .swipeActions(edge: .leading) {
+                    Button("Reading") {
+                        book.status = Status.inProgress
+                        book.statusOrder = book.status.sortOrder
+                    }
+                    .tint(.blue)
+                }
+            }
+            .onDelete(
+                perform: isSearching ? deleteSearchItems : deleteItems
+            )
+            // Auto navigate to newly added books
+            /*.navigationDestination(
                  isPresented: Binding(
                  get: { selectedBook != nil },  // Navigate if a book is selected
                  set: { if !$0 { selectedBook = nil } }  // Clear selection after navigating
@@ -80,39 +79,35 @@ struct OwnedBooksView: View {
                  }
                  }
                  */
-            }
-            .navigationDestination(for: Book.self) { book in
-                BookDetailsView(book: book)
-            }
-            .toolbar {
-                ToolbarItem {
-                    Button("Scan new Book", systemImage: "barcode.viewfinder") {
-                        isShowingScanner = true
-                    }
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Book", systemImage: "plus")
-                    }
+        }
+        .toolbar {
+            ToolbarItem {
+                Button("Scan new Book", systemImage: "barcode.viewfinder") {
+                    isShowingScanner = true
                 }
             }
-            // Turns of the opaque background of the toolbar when content scrolls below it
-            //.toolbarBackground(.hidden, for: .navigationBar)
-            .alert(isPresented: $showBookNotFoundAlert) {
-                Alert(
-                    title: Text("Book could not be found"),
-                    message: Text("Please enter the book details manualy")
-                )
+            ToolbarItem {
+                Button(action: addItem) {
+                    Label("Add Book", systemImage: "plus")
+                }
             }
-            .searchable(
-                text: $searchQuery,
-                placement: .automatic,
-                prompt: "Title or Author"
+        }
+        // Turns of the opaque background of the toolbar when content scrolls below it
+        //.toolbarBackground(.hidden, for: .navigationBar)
+        .alert(isPresented: $showBookNotFoundAlert) {
+            Alert(
+                title: Text("Book could not be found"),
+                message: Text("Please enter the book details manualy")
             )
-            .textInputAutocapitalization(.never)
-            .onChange(of: searchQuery) {
-                self.fetchSearchResults(for: searchQuery)
-            }
+        }
+        .searchable(
+            text: $searchQuery,
+            placement: .automatic,
+            prompt: "Title or Author"
+        )
+        .textInputAutocapitalization(.never)
+        .onChange(of: searchQuery) {
+            self.fetchSearchResults(for: searchQuery)
         }
         .sheet(isPresented: $isShowingScanner) {
             CodeScannerView(
@@ -221,6 +216,9 @@ struct OwnedBooksView: View {
 }
 
 #Preview {
-    OwnedBooksView()
-}
+    let preview = Preview()
+    preview.addExamples(Book.sampleBooks)
 
+    return OwnedBooksView()
+        .modelContainer(preview.container)
+}

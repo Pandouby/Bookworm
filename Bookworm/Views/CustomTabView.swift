@@ -11,9 +11,10 @@ struct CustomTabView: View {
     @Binding var tabIndex: Int
     
     let tabBarItems: [(iconName: String, name: String)] = [
-        ("book", "Owned books"),
+        ("book.closed", "Owned books"),
         ("magnifyingglass", "Descovery"),
-        ("person.fill", "Settings")
+        ("chart.bar.xaxis", "Settings"),
+        ("slider.horizontal.2.square", "Settings")
     ]
     
         
@@ -27,7 +28,7 @@ struct CustomTabView: View {
                 .padding(.horizontal, 10)
             
             HStack {
-                ForEach(0..<3) { index in
+                ForEach(0..<4) { index in
                     Button {
                         if (tabIndex == index + 1) {
                             
@@ -37,7 +38,8 @@ struct CustomTabView: View {
                     } label: {
                         VStack() {
                             Image(systemName: tabBarItems[index].iconName)
-                                .font(.system(size: index + 1 == tabIndex ? 30 : 25))
+                                //.font(.system(size: index + 1 == tabIndex ? 30 : 25))
+                                .font(.system(size: 30))
                                 .foregroundColor(index + 1 == tabIndex ? Color.accentColor : Color.gray)
                         }
                     }
@@ -50,10 +52,8 @@ struct CustomTabView: View {
     }
 }
 
-struct CustomTabViewPreview: PreviewProvider {
-    static var previews: some View {
-        CustomTabView(tabIndex: .constant(1))
-    }
+#Preview {
+    CustomTabView(tabIndex: .constant(1))
 }
 
 

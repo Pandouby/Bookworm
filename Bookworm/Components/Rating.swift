@@ -67,19 +67,19 @@ struct RatingView: View {
     private var fullStar: some View {
         Image(systemName: "star.fill")
             .star(size: starSize)
-            .foregroundColor(.blue)
+            .foregroundColor(.accentColor)
     }
 
     private var halfStar: some View {
         Image(systemName: "star.leadinghalf.fill")
             .star(size: starSize)
-            .foregroundColor(.blue)
+            .foregroundColor(.accentColor)
     }
 
     private var emptyStar: some View {
         Image(systemName: "star")
             .star(size: starSize)
-            .foregroundColor(.blue)
+            .foregroundColor(.accentColor)
     }
 
     private func rating(at position: CGPoint) -> Double {

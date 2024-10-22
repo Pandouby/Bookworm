@@ -69,6 +69,11 @@ enum Status: String, Codable, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
+enum BookDestination: Hashable {
+    case BookSearchView(Book)
+    case OwnedBooksView(Book)
+}
+
 @Model
 class Book {
     var isbn: String

@@ -12,3 +12,6 @@ struct WantToReadView: View {
     }
 }
 
+#Preview {
+    WantToReadView()
+}

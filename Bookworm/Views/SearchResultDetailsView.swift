@@ -10,32 +10,59 @@ import SwiftUI
 
 struct SearchResultDetailsView: View {
     var searchResult: Book
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(searchResult.title).font(.headline)
-            Text(searchResult.author).font(.subheadline)
+            Text(searchResult.title)
+                .font(.title)
+            Text("By \(searchResult.author)")
+                .font(.title3)
+                .opacity(0.8)
+            
+            HStack(alignment: .top) {
+                Text("\(searchResult.pageCount) pages")
+                
+                Spacer()
+                
+                Text(searchResult.genre.rawValue) 
+            }
+            .frame(maxWidth: .infinity)
 
-            Text(searchResult.bookDescription)
+            Text("\"\(searchResult.bookDescription)\"")
+                .padding(.top, 5)
+            
             Spacer()
         }
         .padding()
+        .frame(maxWidth: .infinity)
+        .toolbar {
+            ToolbarItem {
+                Button("Add book", systemImage: "plus") {
+                    addBook()
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    func addBook() {
+        modelContext.insert(searchResult)
+        dismiss()
     }
 }
 
+
+
 #Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: false)
-        let container = try ModelContainer(
-            for: Book.self, configurations: config)
+    let example = Book(
+        isbn: "12345678", title: "To Kill a Mockingbird", author: "Harper Lee",
+        pages: 309,
+        genre: Genre.fiction,
+        bookDescription:
+            "Shoot all the bluejays you want, if you can hit 'em, but remember it's a sin to kill a mockingbird."
+    )
 
-        let excample = Book(
-            isbn: "1234", title: "Test", author: "Test", pages: 123,
-            genre: Genre.fiction, bookDescription: "A test book to check if the layouting is working properly. This book has no content and is fake.")
-
-        return SearchResultDetailsView(searchResult: excample).modelContainer(
-            container)
-    } catch {
-        fatalError("Failed to create model container")
-    }
+    return SearchResultDetailsView(searchResult: example)
 }

@@ -6,13 +6,23 @@ import Foundation
 //  Created by Silvan Dubach on 21.10.2024.
 //
 import SwiftUI
+import SwiftData
 
 struct BooksView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: [
+        SortDescriptor(\Book.statusOrder),
+        SortDescriptor(\Book.finishedDate, order: .reverse),
+        SortDescriptor(\Book.dateAdded, order: .reverse),
+        SortDescriptor(\Book.title),
+    ])
+    private var books: [Book]
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 15) {
                 VStack(alignment: .leading) {
-                    Text("\(getCurrentDateString())")
+                    Text("\(dateStringFormatter(date: Date(), formattingString: "EEEE, MMMM dd", isUppercase: true))")
                         .font(.subheadline)
                     Text("Your Books")
                         .font(.largeTitle)
@@ -48,16 +58,17 @@ struct BooksView: View {
                                 )
                             
                             VStack(alignment: .leading) {
-                                Image(systemName: "book")
+                                Image(systemName: "books.vertical.fill")
                                     .foregroundColor(.white)
                                     .opacity(0.6)
                                 
-                                Text("Owned Books").font(.callout)
+                                Text("Owned Books")
+                                    .font(.title3)
                                     .foregroundStyle(.white)
                                     .bold()
                                     .padding(.top, 5)
                                 
-                                Text("test")
+                                Text("\(books.count) items")
                                     .foregroundStyle(.white)
                                     .opacity(0.8)
                                 
@@ -100,12 +111,13 @@ struct BooksView: View {
                                     .foregroundColor(.white)
                                     .opacity(0.6)
                                 
-                                Text("Want to read").font(.callout)
+                                Text("Want to read")
+                                    .font(.title3)
                                     .foregroundStyle(.white)
                                     .bold()
                                     .padding(.top, 5)
                                 
-                                Text("test")
+                                Text("\(books.count) items")
                                     .foregroundStyle(.white)
                                     .opacity(0.8)
                                 
@@ -119,8 +131,10 @@ struct BooksView: View {
                     }
                 }
                 
-                NavigationLink(destination: WantToReadView()) {
-                    ZStack {
+                let currentBook = books.filter { $0.status == Status.inProgress}.first
+                
+                NavigationLink(destination: currentBook.map { BookDetailsView(book: $0) }) {
+                    ZStack(alignment: .topLeading) {
                         Rectangle()
                             .fill(
                                 LinearGradient(
@@ -145,6 +159,60 @@ struct BooksView: View {
                                 RoundedRectangle(cornerRadius: 24)
                             )
                         
+                        VStack(alignment: .leading) {
+                            Image(systemName: "book")
+                                .foregroundColor(.white)
+                                .opacity(0.6)
+                            
+                            Text("Currenlty reading")
+                                .font(.title3)
+                                .foregroundStyle(.white)
+                                .bold()
+                                .padding(.top, 5)
+                            
+                            if let currentBook = currentBook {
+                                HStack(alignment: .top) {
+                                    VStack(alignment: .leading) {
+                                        
+                                        Text("\(currentBook.title)")
+                                            .foregroundStyle(.white)
+                                            .bold()
+                                        
+                                        Text("By \(currentBook.author)")
+                                            .foregroundStyle(.white)
+                                            .opacity(0.8)
+                                        
+                                        Text("Started at \(dateStringFormatter(date: currentBook.startedDate, formattingString: "MMMM dd"))")
+                                            .foregroundStyle(.white)
+                                            .opacity(0.8)
+                                        
+                                        
+                                        Spacer()
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    
+                                    VStack(alignment: .trailing) {
+                                        Text("\(currentBook.genre.rawValue)")
+                                            .foregroundStyle(.white)
+                                            .opacity(0.8)
+                                        
+                                        Text("\(currentBook.pageCount) pages")
+                                            .foregroundStyle(.white)
+                                            .opacity(0.8)
+                                        Spacer()
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                Text("No book in progress")
+                                    .foregroundStyle(.white)
+                                    .opacity(0.8)
+                                Spacer()
+                            }
+                        }
+                        .padding()
                     }
                     .frame(height: 200)
                     .shadow(color: .widgetShadow, radius: 10)
@@ -160,12 +228,20 @@ struct BooksView: View {
     }
 }
 
-func getCurrentDateString() -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "EEEE, MMMM dd"
-    return formatter.string(from: Date()).uppercased()
-}
-
 #Preview {
-    BooksView()
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Book.self, configurations: config)
+    
+    for i in 1..<10 {
+        let book = Book(
+            isbn: "1234", title: "Test", author: "Test", pages: 123,
+            genre: Genre.fiction,
+            bookDescription:
+                "A test book to check if the layouting is working properly. This book has no content and is fake."
+        )
+        container.mainContext.insert(book)
+    }
+    
+    return BooksView()
+        .modelContainer(container)
 }

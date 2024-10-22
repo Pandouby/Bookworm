@@ -27,18 +27,26 @@ struct BookSearchView: View {
             }
             List {
                 ForEach(searchResults) { book in
-                    NavigationLink(value: book) {
+                    NavigationLink(
+                        destination: SearchResultDetailsView(searchResult: book)
+                    ) {
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(truncatedTitle(book.title, length: 18)).font(.headline)
+                                Text(truncatedTitle(book.title, length: 18))
+                                    .font(.headline)
                                 book.author.isEmpty
-                                ? Text(" ") : Text(truncatedTitle(book.author, length: 20))
-                                
+                                    ? Text(" ")
+                                    : Text(
+                                        truncatedTitle(book.author, length: 20))
+
                             }
                             Spacer()
                             VStack(alignment: .trailing) {
-                                Text(truncatedTitle(book.genre.rawValue, length: 20))
-                                book.pageCount > 0 ? Text("p. \(book.pageCount)") : Text("")
+                                Text(
+                                    truncatedTitle(
+                                        book.genre.rawValue, length: 20))
+                                book.pageCount > 0
+                                    ? Text("p. \(book.pageCount)") : Text("")
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -50,7 +58,7 @@ struct BookSearchView: View {
                          dismiss()
                          }
                          */
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true){
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button("Owned") {
                                 modelContext.insert(book)
                                 print("Add: \(book.title)")
@@ -58,7 +66,7 @@ struct BookSearchView: View {
                             }
                             .tint(.blue)
                         }
-                        .swipeActions(edge: .leading, allowsFullSwipe: true){
+                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
                             Button("Want to read") {
                                 // Add functionallity to add to want to read list
                                 print("Want to read: \(book.title)")
@@ -69,9 +77,6 @@ struct BookSearchView: View {
                         }
                     }
                 }
-            }
-            .navigationDestination(for: Book.self) { book in
-                SearchResultDetailsView(searchResult: book)
             }
             .searchable(
                 text: $searchQuery,
@@ -95,7 +100,7 @@ struct BookSearchView: View {
     private func fetchBooks(for query: String) {
         let url = URL(
             string:
-                "https://www.googleapis.com/books/v1/volumes?q=\(query)&maxResult=10"
+                "https://www.googleapis.com/books/v1/volumes?q=intitle:\(query)|inauthor:\(query)&printType=books&orderBy=relevance&maxResult=10"
         )!
 
         let task = URLSession.shared.dataTask(with: url) {
@@ -148,24 +153,30 @@ struct BookSearchView: View {
 
         task.resume()
     }
-    
+
     private func addEmptyBook() {
-        let emptyBook = Book(isbn: "", title: "New Book", author: "Unknown", pages: 0, genre: Genre.nonClassifiable)
+        let emptyBook = Book(
+            isbn: "", title: "New Book", author: "Unknown", pages: 0,
+            genre: Genre.nonClassifiable)
         modelContext.insert(emptyBook)
         dismiss()
-    }
-    
-    func truncatedTitle(_ title: String, length: Int) -> String {
-        if title.count > length {
-            let index = title.index(title.startIndex, offsetBy: length)
-            return String(title[..<index]) + "..."
-        } else {
-            return title
-        }
     }
 }
 
 #Preview {
-    BookSearchView()
-}
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Book.self, configurations: config)
 
+    for i in 1..<10 {
+        let book = Book(
+            isbn: "1234", title: "Test", author: "Test", pages: 123,
+            genre: Genre.fiction,
+            bookDescription:
+                "A test book to check if the layouting is working properly. This book has no content and is fake."
+        )
+        container.mainContext.insert(book)
+    }
+
+    return BookSearchView()
+        .modelContainer(container)
+}

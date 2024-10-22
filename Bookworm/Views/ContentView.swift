@@ -9,7 +9,6 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
     @State private var tabIndex = 1
 
     var body: some View {
@@ -20,8 +19,11 @@ struct ContentView: View {
             Text("Dicovery tab")
                 .tag(2)
             
-            Text("Settings tab")
+            Text("Analytics tab")
                 .tag(3)
+            
+            Text("Settings tab")
+                .tag(4)
         }
         .overlay(alignment: .bottom) {
             CustomTabView(tabIndex: $tabIndex)
@@ -31,5 +33,9 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    let preview = Preview()
+    preview.addExamples(Book.sampleBooks)
+    
+    return ContentView()
+        .modelContainer(preview.container)
 }

@@ -10,6 +10,8 @@ struct StatusIcon: View {
     var status: Status
     var body: some View {
         switch status {
+        case .wantToRead:
+            statusWantToRead
         case .toDo:
             statusToDo
         case .onPause:
@@ -22,6 +24,12 @@ struct StatusIcon: View {
     }
 
     var iconSize: CGFloat = 30
+
+    private var statusWantToRead: some View {
+        Image(systemName: "cart")
+            .foregroundColor(.blue)
+            .font(.system(size: iconSize))
+    }
 
     private var statusToDo: some View {
         Image(systemName: "checklist.unchecked")

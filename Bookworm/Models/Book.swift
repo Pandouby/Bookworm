@@ -52,6 +52,7 @@ enum Genre: String, Codable, CaseIterable, Identifiable {
 }
 
 enum Status: String, Codable, CaseIterable, Identifiable {
+    case wantToRead = "Want to Read"
     case toDo = "To Do"
     case onPause = "On Pause"
     case inProgress = "In Progress"
@@ -59,10 +60,11 @@ enum Status: String, Codable, CaseIterable, Identifiable {
     
     var sortOrder: Int {
         switch self {
-        case .toDo: return 0
-        case .onPause: return 1
-        case .inProgress: return 2
-        case .done: return 3
+        case .wantToRead: return 0
+        case .toDo: return 1
+        case .onPause: return 2
+        case .inProgress: return 3
+        case .done: return 4
         }
     }
     
@@ -82,10 +84,11 @@ class Book {
     var pageCount: Int
     var genre: Genre
     var bookDescription: String = ""
-    
-    var dateAdded: Date = Date()
     var publishedDate: String?
     var publisher: String?
+    var imageLink: String?
+    
+    var dateAdded: Date = Date()
     var rating: Double = 2.5
     var status: Status = Status.toDo
     var statusOrder: Int = Status.toDo.sortOrder
@@ -95,7 +98,7 @@ class Book {
     
     init(
         isbn: String, title: String, author: String, pages: Int, genre: Genre,
-        rating: Double = 2.5, started: Date = Date(), finished: Date = Date(),
+        rating: Double = 2.5, started: Date = Date(), finished: Date = Date(), imageLink: String? = "",
         notes: String = "", publishedDate: String? = nil, publisher: String? = nil,
         bookDescription: String = ""
     ) {
@@ -107,6 +110,7 @@ class Book {
         self.publishedDate = publishedDate
         self.publisher = publisher
         self.bookDescription = bookDescription
+        self.imageLink = imageLink
     }
 }
 struct BookResponse: Codable {
@@ -127,9 +131,14 @@ struct VolumeInfo: Codable {
     let publishedDate: String?
     let publisher: String?
     let description: String?
+    let imageLinks: ImageLink
 }
 
 struct BookIdentifier: Codable {
     let type: String
     let identifier: String
+}
+
+struct ImageLink: Codable {
+    let thumbnail: String
 }

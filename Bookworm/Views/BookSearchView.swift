@@ -128,6 +128,7 @@ struct BookSearchView: View {
                             bookData?.categories?.first ?? "Non-Classifiable"
                         let publisher = bookData?.publisher ?? ""
                         let publishedDate = bookData?.publishedDate
+                        let imageLink = bookData?.imageLinks.thumbnail.replacingOccurrences(of: "http://", with: "https://")
                         let bookDescription = bookData?.description
 
                         let newBook = Book(
@@ -137,6 +138,7 @@ struct BookSearchView: View {
                             pages: pageCount,
                             genre: Genre(rawValue: genre)
                                 ?? Genre.nonClassifiable,
+                            imageLink: imageLink,
                             publishedDate: publishedDate,
                             publisher: publisher,
                             bookDescription: bookDescription ?? ""

@@ -13,12 +13,16 @@ import SwiftUI
 
 struct OwnedBooksView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: [
-        SortDescriptor(\Book.statusOrder),
-        SortDescriptor(\Book.finishedDate, order: .reverse),
-        SortDescriptor(\Book.dateAdded, order: .reverse),
-        SortDescriptor(\Book.title),
-    ])
+    @Query(
+        filter: #Predicate<Book> { book in
+            books.filter { $0.status != .wantToRead }
+        },
+        sort: [
+            SortDescriptor(\Book.statusOrder),
+            SortDescriptor(\Book.finishedDate, order: .reverse),
+            SortDescriptor(\Book.dateAdded, order: .reverse),
+            SortDescriptor(\Book.title),
+        ])
     private var books: [Book]
 
     @State private var isShowingScanner = false

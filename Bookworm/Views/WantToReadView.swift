@@ -6,22 +6,13 @@
 //
 
 import AVFoundation
-import CodeScanner
 import Foundation
 import SwiftData
 import SwiftUI
 
 struct WantToReadView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(
-        filter: #Predicate<Book> { book in
-            books.filter { $0.status == .wantToRead }
-        },
-        sort: [
-            SortDescriptor(\Book.dateAdded, order: .reverse),
-            SortDescriptor(\Book.title),
-        ])
-    private var wantToReadList: [Book]
+    @Query() private var wantToReadList: [Book]
 
     @State private var isBookSearchShowing = false
 
@@ -31,6 +22,20 @@ struct WantToReadView: View {
     var isSearching: Bool {
         return !searchQuery.isEmpty
     }
+    
+    init() {
+        let filter = #Predicate<Book> { book in
+            book.statusOrder == 0
+        }
+        
+        let sort: [SortDescriptor<Book>] = [
+            SortDescriptor(\Book.dateAdded, order: .reverse),
+            SortDescriptor(\Book.title),
+        ]
+        
+        _wantToReadList = Query(filter: filter, sort: sort)
+    }
+
 
     var body: some View {
         List {
@@ -49,7 +54,7 @@ struct WantToReadView: View {
                 }
                 .swipeActions(edge: .leading) {
                     Button("Add to Owned") {
-                        book.status = Status.inProgress
+                        book.status = Status.toDo
                         book.statusOrder = book.status.sortOrder
                     }
                     .tint(.blue)
@@ -76,7 +81,7 @@ struct WantToReadView: View {
             self.fetchSearchResults(for: searchQuery)
         }
         .sheet(isPresented: $isBookSearchShowing) {
-            BookSearchView()
+            BookSearchView(isWantToReadView: true)
         }
         .toolbarBackground(.hidden, for: .tabBar)
     }
@@ -118,6 +123,6 @@ struct WantToReadView: View {
     let preview = Preview()
     preview.addExamples(Book.sampleBooks)
 
-    return OwnedBooksView()
+    return WantToReadView()
         .modelContainer(preview.container)
 }

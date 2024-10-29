@@ -6,24 +6,14 @@
 //
 
 import AVFoundation
-import CodeScanner
 import Foundation
 import SwiftData
+import CodeScanner
 import SwiftUI
 
 struct OwnedBooksView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(
-        filter: #Predicate<Book> { book in
-            books.filter { $0.status != .wantToRead }
-        },
-        sort: [
-            SortDescriptor(\Book.statusOrder),
-            SortDescriptor(\Book.finishedDate, order: .reverse),
-            SortDescriptor(\Book.dateAdded, order: .reverse),
-            SortDescriptor(\Book.title),
-        ])
-    private var books: [Book]
+    @Query() private var books: [Book]
 
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
@@ -36,6 +26,21 @@ struct OwnedBooksView: View {
 
     var isSearching: Bool {
         return !searchQuery.isEmpty
+    }
+
+    init() {
+        let filter = #Predicate<Book> { book in
+            book.statusOrder != 0
+        }
+        
+        let sort: [SortDescriptor<Book>] = [
+            SortDescriptor(\Book.statusOrder),
+            SortDescriptor(\Book.finishedDate, order: .reverse),
+            SortDescriptor(\Book.dateAdded, order: .reverse),
+            SortDescriptor(\Book.title)
+        ]
+        
+        _books = Query(filter: filter, sort: sort)
     }
 
     var body: some View {
@@ -153,7 +158,7 @@ struct OwnedBooksView: View {
             }
         }
     }
-
+    
     private func handleScan(result: Result<ScanResult, ScanError>) {
         isShowingScanner = false
 
@@ -203,7 +208,9 @@ struct OwnedBooksView: View {
                         genre: Genre(rawValue: genre) ?? Genre.nonClassifiable
                     )
 
-                    modelContext.insert(newBook)
+                    DispatchQueue.main.async {
+                        modelContext.insert(newBook)
+                    }
                 } else {
                     print("No book data found for the given ISBN.")
                     showBookNotFoundAlert = true

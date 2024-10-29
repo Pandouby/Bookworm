@@ -19,7 +19,7 @@ struct ContentView: View {
             Text("Dicovery tab")
                 .tag(2)
             
-            Text("Analytics tab")
+            AnalyticsView()
                 .tag(3)
             
             Text("Settings tab")

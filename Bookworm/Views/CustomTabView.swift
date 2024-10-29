@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CustomTabView: View {
     @Binding var tabIndex: Int
+    @Environment(\.dismiss) var dismiss
     
     let tabBarItems: [(iconName: String, name: String)] = [
         ("book.closed", "Owned books"),
@@ -31,7 +32,7 @@ struct CustomTabView: View {
                 ForEach(0..<4) { index in
                     Button {
                         if (tabIndex == index + 1) {
-                            
+                            dismiss()
                         } else {
                             tabIndex = index + 1
                         }

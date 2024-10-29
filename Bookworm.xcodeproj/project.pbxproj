@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		45A835D22CBFACFB00FE016A /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = 45A835D12CBFACFB00FE016A /* CodeScanner */; };
+		45F25CF52CD0D8D2003BB87E /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = 45F25CF42CD0D8D2003BB87E /* CodeScanner */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,7 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45A835D22CBFACFB00FE016A /* CodeScanner in Frameworks */,
+				45F25CF52CD0D8D2003BB87E /* CodeScanner in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,7 +130,7 @@
 			);
 			name = Bookworm;
 			packageProductDependencies = (
-				45A835D12CBFACFB00FE016A /* CodeScanner */,
+				45F25CF42CD0D8D2003BB87E /* CodeScanner */,
 			);
 			productName = Bookworm;
 			productReference = 45A835952CB6D9C200FE016A /* Bookworm.app */;
@@ -215,7 +215,7 @@
 			mainGroup = 45A8358C2CB6D9C200FE016A;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				45A835D02CBFACFB00FE016A /* XCRemoteSwiftPackageReference "CodeScanner" */,
+				45F25CF32CD0D8D2003BB87E /* XCRemoteSwiftPackageReference "CodeScanner" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 45A835962CB6D9C200FE016A /* Products */;
@@ -584,7 +584,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		45A835D02CBFACFB00FE016A /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
+		45F25CF32CD0D8D2003BB87E /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/twostraws/CodeScanner";
 			requirement = {
@@ -595,9 +595,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		45A835D12CBFACFB00FE016A /* CodeScanner */ = {
+		45F25CF42CD0D8D2003BB87E /* CodeScanner */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 45A835D02CBFACFB00FE016A /* XCRemoteSwiftPackageReference "CodeScanner" */;
+			package = 45F25CF32CD0D8D2003BB87E /* XCRemoteSwiftPackageReference "CodeScanner" */;
 			productName = CodeScanner;
 		};
 /* End XCSwiftPackageProductDependency section */

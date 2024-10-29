@@ -9,6 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct BookSearchView: View {
+    var isWantToReadView: Bool? = false
     @State var searchResults: [Book] = []
     @Environment(\.modelContext) private var modelContext
     @State var searchQuery: String = ""
@@ -128,7 +129,7 @@ struct BookSearchView: View {
                             bookData?.categories?.first ?? "Non-Classifiable"
                         let publisher = bookData?.publisher ?? ""
                         let publishedDate = bookData?.publishedDate
-                        let imageLink = bookData?.imageLinks.thumbnail.replacingOccurrences(of: "http://", with: "https://")
+                        let imageLink = bookData?.imageLinks?.thumbnail.replacingOccurrences(of: "http://", with: "https://")
                         let bookDescription = bookData?.description
 
                         let newBook = Book(
@@ -141,8 +142,11 @@ struct BookSearchView: View {
                             imageLink: imageLink,
                             publishedDate: publishedDate,
                             publisher: publisher,
-                            bookDescription: bookDescription ?? ""
+                            bookDescription: bookDescription ?? "",
+                            status: isWantToReadView ?? false ? .wantToRead : .toDo
                         )
+                        
+                        newBook.statusOrder = newBook.status.sortOrder
 
                         searchResults.append(newBook)
                     }

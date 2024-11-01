@@ -63,14 +63,14 @@ struct OwnedBooksView: View {
                         book.status = Status.done
                         book.statusOrder = book.status.sortOrder
                     }
-                    .tint(.green)
+                    .tint(.done)
                 }
                 .swipeActions(edge: .leading) {
                     Button("Reading") {
                         book.status = Status.inProgress
                         book.statusOrder = book.status.sortOrder
                     }
-                    .tint(.blue)
+                    .tint(.inProgress)
                 }
             }
             .onDelete(

@@ -14,7 +14,7 @@ struct CustomTabView: View {
     let tabBarItems: [(iconName: String, name: String)] = [
         ("book.closed", "Owned books"),
         ("magnifyingglass", "Descovery"),
-        ("chart.bar.xaxis", "Settings"),
+        ("chart.bar.xaxis", "Analytics"),
         ("slider.horizontal.2.square", "Settings")
     ]
     

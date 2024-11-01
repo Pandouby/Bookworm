@@ -27,31 +27,31 @@ struct StatusIcon: View {
 
     private var statusWantToRead: some View {
         Image(systemName: "cart")
-            .foregroundColor(.blue)
+            .foregroundColor(.wantToRead)
             .font(.system(size: iconSize))
     }
 
     private var statusToDo: some View {
         Image(systemName: "checklist.unchecked")
-            .foregroundColor(.red)
+            .foregroundColor(.toDo)
             .font(.system(size: iconSize))
     }
 
     private var statusOnPause: some View {
         Image(systemName: "pause.fill")
-            .foregroundColor(.blue)
+            .foregroundColor(.onPause)
             .font(.system(size: iconSize))
     }
 
     private var statusInProgress: some View {
         Image(systemName: "checklist")
-            .foregroundColor(.blue)
+            .foregroundColor(.inProgress)
             .font(.system(size: iconSize))
     }
 
     private var statusDone: some View {
         Image(systemName: "checklist.checked")
-            .foregroundColor(.green)
+            .foregroundColor(.done)
             .font(.system(size: iconSize))
     }
 }

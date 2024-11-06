@@ -16,7 +16,7 @@ struct ContentView: View {
             BooksView()
                 .tag(1)
             
-            Text("Dicovery tab")
+            DiscoveryView()
                 .tag(2)
             
             AnalyticsView()

@@ -114,7 +114,15 @@ struct SearchResultDetailsView: View {
     private var searchResultDetailWidget: some View {
         ZStack(alignment: .topLeading) {
             Rectangle()
-                .fill(.widget)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            .customRed, .customRedAccent,
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .clipShape(
                     RoundedRectangle(cornerRadius: 24)
                 )

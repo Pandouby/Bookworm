@@ -170,7 +170,7 @@ struct BooksView: View {
                         )
 
                         VStack(alignment: .leading) {
-                            Image(systemName: "book")
+                            Image(systemName: "book.fill")
                                 .foregroundColor(.white)
                                 .opacity(0.6)
 

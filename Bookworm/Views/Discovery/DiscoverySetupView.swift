@@ -5,14 +5,21 @@
 //  Created by Silvan Dubach on 04.11.2024.
 //
 
+/*
+
 import SwiftUI
 
 struct DiscoverySetupView: View {
+
+    
+    
     var books: [Book]
     @AppStorage("isDiscoveryActive") var isDiscoveryActive: Bool = false
+    
     @AppStorage("FavoriteGenres") var favoriteGenres: [String] = [
-        .nonClassifiable.rawValue, .nonClassifiable.rawValue, .nonClassifiable.rawValue,
+        Genre.nonClassifiable.rawValue, Genre.nonClassifiable.rawValue, Genre.nonClassifiable.rawValue,
     ]
+     
 
     private var enoughReadBooks: Bool
 
@@ -25,7 +32,6 @@ struct DiscoverySetupView: View {
         VStack {
             NavigationStack {
                 Form {
-
                     Section(header: Text("Favorite Genres")) {
                         Picker("1.", selection: $favoriteGenres[0]) {
                             ForEach(Genre.allCases) { genre in
@@ -47,6 +53,7 @@ struct DiscoverySetupView: View {
                             }
                         }
                         .pickerStyle(.navigationLink)
+                     
                     }
 
                     if !enoughReadBooks {
@@ -81,22 +88,26 @@ struct DiscoverySetupView: View {
     private func submit() {
         print(favoriteGenres)
 
-        if !favoriteGenres.contains(.nonClassifiable) {
+        if !favoriteGenres.contains(Genre.nonClassifiable.rawValue) {
             isDiscoveryActive = true
             UserDefaults.standard.set(
-                [favoriteGenres[0].rawValue, favoriteGenres[1].rawValue, favoriteGenres[2].rawValue], forKey: "FavoriteGenres")
+                [favoriteGenres[0], favoriteGenres[1], favoriteGenres[2]], forKey: "FavoriteGenres")
             print("Submited")
         } else {
             // Display an alert that are genres missing
             print("Please select 3 favorite genres")
         }
     }
+     
 }
 
-#Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
 
-    return DiscoverySetupView(books: Book.sampleBooks)
-        .modelContainer(preview.container)
-}
+ #Preview {
+     let preview = Preview()
+     preview.addExamples(Book.sampleBooks)
+     
+     return DiscoverySetupView(books: Book.sampleBooks)
+     .modelContainer(preview.container)
+ }
+ 
+*/

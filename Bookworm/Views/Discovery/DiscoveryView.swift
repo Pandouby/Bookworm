@@ -30,7 +30,7 @@ struct DiscoveryView: View {
         if(isDiscoveryActive) {
             BookRecommendationView(readBooks: books)
         } else {
-            DiscoverySetupView(books: books)
+            //DiscoverySetupView(books: books)
         }
     }
 }

@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: books_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: book_db
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent data storage
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

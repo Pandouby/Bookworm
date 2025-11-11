@@ -1,0 +1,77 @@
+// Work
+{'key': '/works/OL12645767W', 'created': {'type': '/type/datetime', 'value': '2009-12-11T07: 26: 03.679064'
+    }, 'title': 'Specimen book of types etc.', 'first_publish_date': '1888', 'latest_revision': 2, 'last_modified': {'type': '/type/datetime', 'value': '2010-01-24T06: 42: 31.662068'
+    }, 'authors': [
+        {'type': '/type/author_role', 'author': {'key': '/authors/OL5641066A'
+            }
+        }
+    ], 'type': {'key': '/type/work'
+    }, 'revision': 2, 'author_names': ['MacKellar, Smiths and Jordan Company.'
+    ]
+}
+
+// Edition
+/type/edition	/books/OL10000676M	3	2011-04-28T21: 19: 06.806703	{
+    "publishers": [
+        "Stationery Office Books"
+    ],
+    "physical_format": "Paperback",
+    "last_modified": {
+        "type": "/type/datetime",
+        "value": "2011-04-28T21:19:06.806703"
+    },
+    "title": "Northern Ireland (Emergency Provisions) Bill",
+    "number_of_pages": 2,
+    "created": {
+        "type": "/type/datetime",
+        "value": "2008-04-30T09:38:13.731961"
+    },
+    "isbn_13": [
+        "9780108365867"
+    ],
+    "isbn_10": [
+        "0108365867"
+    ],
+    "publish_date": "March 12, 1998",
+    "key": "/books/OL10000676M",
+    "authors": [
+        {
+            "key": "/authors/OL46053A"
+        }
+    ],
+    "latest_revision": 3,
+    "oclc_numbers": [
+        "314617401"
+    ],
+    "works": [
+        {
+            "key": "/works/OL14902856W"
+        }
+    ],
+    "type": {
+        "key": "/type/edition"
+    },
+    "revision": 3
+}
+
+// Author
+/type/author	/authors/OL10000507A	1	2021-12-26T22: 29: 10.476228	{
+    "type": {
+        "key": "/type/author"
+    },
+    "name": "Maximilian Stefan-Maria Knade",
+    "key": "/authors/OL10000507A",
+    "source_records": [
+        "bwb:9788490391761"
+    ],
+    "latest_revision": 1,
+    "revision": 1,
+    "created": {
+        "type": "/type/datetime",
+        "value": "2021-12-26T22:29:10.476228"
+    },
+    "last_modified": {
+        "type": "/type/datetime",
+        "value": "2021-12-26T22:29:10.476228"
+    }
+}

@@ -62,4 +62,14 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 # Ignore the .vscode folder
-.vscode/
+.vscode/*
+.vscode/settings.json
+
+# Pyhton build files
+__pycache__/
+*.pyc
+
+
+# DB Data
+# Milvus / etcd data + logs
+Docker/Milvus DB/volumes/**/*

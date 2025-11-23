@@ -4,6 +4,7 @@
 //
 //  Created by Silvan Dubach on 28.10.2024.
 //
+import GRDB
 
 enum Genre: String, Codable, CaseIterable, Identifiable {
     case nonClassifiable = "Non-Classifiable"
@@ -46,4 +47,21 @@ enum Genre: String, Codable, CaseIterable, Identifiable {
     case technologyEngineering = "Technology & Engineering"
     case travel = "Travel"
     var id: Self { self }
+}
+
+struct GenreRecord: Codable, FetchableRecord, PersistableRecord, TableRecord {
+    static let databaseTableName = "Genres"
+    
+    var genreId: String
+    var genreName: String
+    
+    enum Columns: String, ColumnExpression {
+        case genreId = "genre_id"
+        case genreName = "genre_name"
+    }
+}
+
+extension GenreRecord {
+    static let workGenres = hasMany(WorkGenre.self)
+    static let works = hasMany(Work.self, through: workGenres, using: WorkGenre.work)
 }

@@ -5,7 +5,9 @@
 //  Created by Silvan Dubach on 28.10.2024.
 //
 
-enum Status: String, Codable, CaseIterable, Identifiable {
+import GRDB
+
+enum Status: String, Codable, CaseIterable, Identifiable, DatabaseValueConvertible {
     case wantToRead = "Want to Read"
     case toDo = "To Do"
     case onPause = "On Pause"

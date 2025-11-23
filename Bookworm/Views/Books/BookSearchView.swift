@@ -48,6 +48,34 @@ struct BookSearchView: View {
                                 }
                             }
                             .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                            /*
+                             .onTapGesture {
+                             modelContext.insert(book)
+                             print("addded: \(book.title)")
+                             dismiss()
+                             }
+                             */
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button("Owned") {
+                                    modelContext.insert(book)
+                                    print("Add: \(book.title)")
+                                    dismiss()
+                                }
+                                .tint(.blue)
+                            }
+                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                Button("Want to read") {
+                                    // Add functionallity to add to want to read list
+                                    // This aporach dose not work and introduces bugs
+                                    //book.status = .wantToRead
+                                    //modelContext.insert(book)
+                                    print("Want to read: \(book.title)")
+                                    print(book.bookDescription)
+                                    dismiss()
+                                }
+                                .tint(.blue)
+                            }
                         }
                     }
                 }
@@ -55,8 +83,6 @@ struct BookSearchView: View {
         }
         .searchable(text: $searchQuery, prompt: "Search for books")
         .textInputAutocapitalization(.never)
-        
-        // 🟦 Trigger debounced search + cancel previous tasks
         .onChange(of: searchQuery) { newValue in
             handleSearchQueryChanged(newValue)
         }
@@ -94,14 +120,9 @@ struct BookSearchView: View {
     @MainActor
     private func runSearch(_ query: String) async {
         isLoading = true
+        defer { isLoading = false } // runs when function exits, including cancellation
         
-        await withTaskCancellationHandler {
-            // Cancel ongoing network work if task is cancelled
-            isLoading = false
-        } operation: {
-            await fetchWorks(for: query)
-            isLoading = false
-        }
+        await fetchWorks(for: query)
     }
     
     // MARK: - FETCH WORKS (unchanged except async wrapper)
@@ -166,7 +187,7 @@ struct BookSearchView: View {
             let fullWork = try JSONDecoder().decode(WorkResponse.self, from: workRaw)
             let editionResp = try JSONDecoder().decode(EditionListResponse.self, from: editionRaw)
             
-            if let authorTuple = try await authorData {
+            if let authorTuple = await authorData {
                 let auth = try? JSONDecoder().decode(AuthorResponse.self, from: authorTuple.0)
                 authorName = auth?.name ?? "Unknown Author"
             }

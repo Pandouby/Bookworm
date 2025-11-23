@@ -16,7 +16,6 @@ struct AppDatabase {
         try! migrator.migrate(dbQueue)
     }
     
-    
     var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         

@@ -7,10 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		451C27432ED0FC6A00E2D25D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 451C27422ED0FC6A00E2D25D /* GRDB */; };
+		451C27472ED0FCDF00E2D25D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 451C27462ED0FCDF00E2D25D /* GRDB */; };
+		45255B042ED1051B009FC4AB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 45255B032ED1051B009FC4AB /* GRDB */; };
 		457ED7BF2DF9A8B20063C8F5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 457ED7BE2DF9A8B20063C8F5 /* WidgetKit.framework */; };
 		457ED7C12DF9A8B20063C8F5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 457ED7C02DF9A8B20063C8F5 /* SwiftUI.framework */; };
 		457ED7D22DF9A8BB0063C8F5 /* BookWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 457ED7BC2DF9A8B20063C8F5 /* BookWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		45F25CF52CD0D8D2003BB87E /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = 45F25CF42CD0D8D2003BB87E /* CodeScanner */; };
+		45FBED4F2ED0D19900495DAB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 45FBED4E2ED0D19900495DAB /* GRDB */; };
+		45FBED532ED0D1E100495DAB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 45FBED522ED0D1E100495DAB /* GRDB */; };
+		45FBED572ED0FB2B00495DAB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 45FBED562ED0FB2B00495DAB /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +126,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				451C27432ED0FC6A00E2D25D /* GRDB in Frameworks */,
+				45FBED4F2ED0D19900495DAB /* GRDB in Frameworks */,
+				45255B042ED1051B009FC4AB /* GRDB in Frameworks */,
+				45FBED532ED0D1E100495DAB /* GRDB in Frameworks */,
+				451C27472ED0FCDF00E2D25D /* GRDB in Frameworks */,
+				45FBED572ED0FB2B00495DAB /* GRDB in Frameworks */,
 				45F25CF52CD0D8D2003BB87E /* CodeScanner in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -218,6 +230,12 @@
 			name = Bookworm;
 			packageProductDependencies = (
 				45F25CF42CD0D8D2003BB87E /* CodeScanner */,
+				45FBED4E2ED0D19900495DAB /* GRDB */,
+				45FBED522ED0D1E100495DAB /* GRDB */,
+				45FBED562ED0FB2B00495DAB /* GRDB */,
+				451C27422ED0FC6A00E2D25D /* GRDB */,
+				451C27462ED0FCDF00E2D25D /* GRDB */,
+				45255B032ED1051B009FC4AB /* GRDB */,
 			);
 			productName = Bookworm;
 			productReference = 45A835952CB6D9C200FE016A /* Bookworm.app */;
@@ -306,6 +324,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				45F25CF32CD0D8D2003BB87E /* XCRemoteSwiftPackageReference "CodeScanner" */,
+				45255B022ED1051B009FC4AB /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 45A835962CB6D9C200FE016A /* Products */;
@@ -759,6 +778,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		45255B022ED1051B009FC4AB /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.8.0;
+			};
+		};
 		45F25CF32CD0D8D2003BB87E /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/twostraws/CodeScanner";
@@ -770,10 +797,35 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		451C27422ED0FC6A00E2D25D /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GRDB;
+		};
+		451C27462ED0FCDF00E2D25D /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GRDB;
+		};
+		45255B032ED1051B009FC4AB /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 45255B022ED1051B009FC4AB /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
 		45F25CF42CD0D8D2003BB87E /* CodeScanner */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 45F25CF32CD0D8D2003BB87E /* XCRemoteSwiftPackageReference "CodeScanner" */;
 			productName = CodeScanner;
+		};
+		45FBED4E2ED0D19900495DAB /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GRDB;
+		};
+		45FBED522ED0D1E100495DAB /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GRDB;
+		};
+		45FBED562ED0FB2B00495DAB /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

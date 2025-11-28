@@ -59,6 +59,11 @@ struct GenreRecord: Codable, FetchableRecord, PersistableRecord, TableRecord {
         case genreId = "genre_id"
         case genreName = "genre_name"
     }
+    
+    enum CodingKeys: String, CodingKey {
+        case genreId = "genre_id"
+        case genreName = "genre_name"
+    }
 }
 
 extension GenreRecord {

@@ -10,24 +10,13 @@ struct SearchResponse: Codable {
     let docs: [WorkResponse]
 }
 
-struct WorkResponse: Codable {
-    let workKey: String
-    let workTitle: String
-    let description: String?
-    let editionKeys: [String]?
-    let authorKeys: [String]?
+struct FullSearchResult: Codable, Identifiable {
+    let work: WorkResponse
+    let edition: EditionResponse?
+    let authors: [AuthorResponse]?
+    let genre: Genre?
+    let publisher: [String]?
     let languages: [String]?
-    let firstPublishYear: Int?
-    let subjects: [String]?
     
-    enum CodingKeys: String, CodingKey {
-        case workKey = "key"
-        case workTitle = "title"
-        case description
-        case editionKeys = "edition_key"
-        case authorKeys = "author_key"
-        case languages = "language"
-        case firstPublishYear = "first_publish_year"
-        case subjects = "subject"
-    }
+    var id: String { work.workKey }
 }

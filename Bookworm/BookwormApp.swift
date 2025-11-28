@@ -7,29 +7,21 @@
 
 import SwiftUI
 import SwiftData
+import GRDB
+import GRDBQuery
 
 @main
 struct BookwormApp: App {
     
-    /*
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Book.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false) // Settin isStoredInMemoryOnly to false breaks the preview for some reason i havent figured out yet. With it set to true SwiftData dosnt work so there is no books being displayed
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-     */
-
+    /// Initialize your GRDB database
+    let appDatabase = AppDatabase.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.databaseContext, appDatabase.dbQueue)
         }
+        // Keep your SwiftData model container
         .modelContainer(for: Book.self)
     }
 }

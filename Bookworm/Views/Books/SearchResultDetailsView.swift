@@ -1,16 +1,8 @@
-//
-//  SearchResultDetailsView.swift
-//  Bookworm
-//
-//  Created by Silvan Dubach on 20.10.2024.
-//
-
-import SwiftData
 import SwiftUI
 
 struct SearchResultDetailsView: View {
-    var searchResult: Book
-    @Environment(\.modelContext) private var modelContext
+    var searchResult: FullSearchResult
+    let addBookAction: (FullSearchResult, Status) -> Void
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -18,18 +10,21 @@ struct SearchResultDetailsView: View {
             VStack(alignment: .leading, spacing: 15) {
                 
                 VStack {
-                    Text(searchResult.title)
+                    Text(searchResult.work.workTitle)
                         .font(.title)
                     
-                    Text("By \(searchResult.author)")
-                        .font(.title3)
-                        .opacity(0.8)
+                    if let author = searchResult.authors?.first {
+                        Text("By \(author.authorName)")
+                            .font(.title3)
+                            .opacity(0.8)
+                            .frame(maxWidth: .infinity)
+                    }
                 }
-                .frame(maxWidth: .infinity)
+
                 
                 HStack(spacing: 15) {
                     
-                    if searchResult.imageLink != "" {
+                    if searchResult.edition?.coverLink != "" {
                         
                         VStack {
                             searchResultDetailWidget
@@ -44,7 +39,7 @@ struct SearchResultDetailsView: View {
                             
                             AsyncImage(
                                 url: URL(
-                                    string: searchResult.imageLink ?? ""
+                                    string: searchResult.edition?.coverLink ?? ""
                                 )
                             ) { image in
                                 image
@@ -65,7 +60,7 @@ struct SearchResultDetailsView: View {
                     }
                 }
                 
-                if(searchResult.bookDescription != "") {
+                if(searchResult.work.description != "") {
                     ZStack {
                         Rectangle()
                             .fill(
@@ -82,7 +77,7 @@ struct SearchResultDetailsView: View {
                             )
                         
                         ScrollView {
-                            Text("\"\(searchResult.bookDescription)\"")
+                            Text("\"\(searchResult.work.description ?? "")\"")
                                 .fixedSize(horizontal: false, vertical: true)
                                 .foregroundStyle(.white)
                         }
@@ -94,20 +89,8 @@ struct SearchResultDetailsView: View {
                 }
             }
             .padding()
-            .toolbar {
-                ToolbarItem {
-                    Button("Add book", systemImage: "plus") {
-                        addBook()
-                    }
-                }
-            }
             .frame(maxWidth: .infinity)
         }
-    }
-
-    func addBook() {
-        modelContext.insert(searchResult)
-        dismiss()
     }
 
     @ViewBuilder
@@ -128,30 +111,35 @@ struct SearchResultDetailsView: View {
                 )
 
             VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading ) {
-                    Text("\(searchResult.pageCount) ")
+                    
+                if(searchResult.edition?.number_of_pages != nil) {
+                    Text("\(searchResult.edition?.number_of_pages ?? 0) ")
                         .bold()
                         .foregroundStyle(.white)
                     + Text("Pages")
                         .foregroundStyle(.white)
-                    
-                    Text(searchResult.genre.rawValue)
+                }
+                        
+                if(searchResult.genre != nil) {
+                    Text("Genre")
+                        .foregroundStyle(.white)
+                    Text(searchResult.genre?.rawValue ?? Genre.nonClassifiable.rawValue)
                         .foregroundStyle(.white)
                         .bold()
                 }
 
-                if(searchResult.publishedDate != "") {
-                    Text("Published ")
+                if(searchResult.edition?.publish_date != "") {
+                    Text("Published\n")
                         .foregroundStyle(.white)
-                    + Text("\(searchResult.publishedDate ?? "")")
+                    + Text("\(searchResult.edition?.publish_date ?? "")")
                         .foregroundStyle(.white)
                         .bold()
                 }
                 
-                if(searchResult.publisher != "") {
+                if(searchResult.edition?.publishers?.first != "") {
                     Text("Published by ")
                         .foregroundStyle(.white)
-                    + Text("\(searchResult.publisher ?? "")")
+                    + Text("\(searchResult.edition?.publishers?.first ?? "")")
                         .foregroundStyle(.white)
                         .bold()
                 }
@@ -161,17 +149,67 @@ struct SearchResultDetailsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .shadow(color: .widgetShadow, radius: 5)
+        .toolbar {
+            ToolbarItem {
+                Button(action: {
+                    addBookAction(searchResult, .toDo)
+                }) {
+                    Label("Add Book", systemImage: "plus")
+                }
+            }
+        }
     }
 }
+
 #Preview {
-    let example = Book(
-        isbn: "12345678", title: "To Kill a Mockingbird", author: "Harper Lee",
-        pages: 309,
-        genre: Genre.fiction,
-        imageLink: "placeholderBookCover",
-        bookDescription:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor."
+    // Sample author
+    let sampleAuthor = AuthorResponse(
+        authorKey: "OL12345A",
+        authorName: "Jane Doe",
+        birthDate: "1970",
+        deathDate: "2022"
+    )
+    
+    // Sample edition
+    let sampleEdition = EditionResponse(
+        title: "Sample Book Edition",
+        key: "/books/OL67890M",
+        number_of_pages: 320,
+        isbn_13: ["9781234567890"],
+        isbn_10: ["1234567890"],
+        publish_date: "2022",
+        languages: [LanguageResponse(key: "/languages/eng")],
+        covers: [123456],
+        coverLink: "https://covers.openlibrary.org/b/id/123456-L.jpg",
+        publishers: ["Sample Publisher"]
     )
 
-    return SearchResultDetailsView(searchResult: example)
+    
+    // Sample work
+    let sampleWork = WorkResponse(
+        workKey: "/works/OL11111W",
+        workTitle: "Sample Book Title",
+        description: "This is a sample book description that explains what the book is about.",
+        editionKeys: ["/books/OL67890M"],
+        authorKeys: ["/authors/OL12345A"],
+        languages: [],
+        firstPublishYear: 2022,
+        subjects: ["Fiction"]
+    )
+    
+    // Full sample book
+    let sampleBook = FullSearchResult(
+        work: sampleWork,
+        edition: sampleEdition,
+        authors: [sampleAuthor],
+        genre: .fiction,
+        publisher: sampleEdition.publishers,
+        languages: sampleWork.languages
+    )
+    
+    SearchResultDetailsView(searchResult: sampleBook, addBookAction: { book, status in
+        print("Mock addBookAction — book: \(book), status: \(status)")
+    })
 }
+
+

@@ -14,6 +14,13 @@ struct Rating: Codable, FetchableRecord, PersistableRecord, TableRecord {
         case rating
         case ratingDate = "rating_date"
     }
+    
+    enum CodingKeys: String, CodingKey {
+        case workKey = "work_key"
+        case ratingId = "rating_id"
+        case rating
+        case ratingDate = "rating_date"
+    }
 }
 
 extension Rating {

@@ -1,5 +1,5 @@
 {
-  "originHash" : "5d097ed8e8c6dc69a2dd2451b16fdfa67e8869c4306ec0fc96dc584ebb3f682a",
+  "originHash" : "f186d79217a61c64181d5a4fff5a4936fe3f3351686c8043d3f6e5565a20f254",
   "pins" : [
     {
       "identity" : "codescanner",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "18497b68fdbb3a09528d260a0a0e1e7e61c8c53d",
         "version" : "7.8.0"
+      }
+    },
+    {
+      "identity" : "grdbquery",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDBQuery",
+      "state" : {
+        "revision" : "540dc48e86af2972b4f1815616aa1ed8ac97845a",
+        "version" : "0.11.0"
       }
     }
   ],

@@ -9,13 +9,20 @@ import AVFoundation
 import Foundation
 import SwiftData
 import SwiftUI
+import GRDBQuery
+import GRDB
 
 struct BookDetailsView: View {
   
+    @Query(AllWorksQuery()) var works: [Work]
     @Bindable var book: Book
 
     var body: some View {
-
+  
+        List(works) { work in
+            Text(work.workTitle)
+        }
+        
         VStack {
             Form {
                 Section {
@@ -98,17 +105,8 @@ struct BookDetailsView: View {
 }
 
 #Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(
-            for: Book.self, configurations: config)
-
-        let excample = Book(
-            isbn: "1234", title: "Test", author: "Test", pages: 123,
-            genre: Genre.fiction)
-
-        return BookDetailsView(book: excample).modelContainer(container)
-    } catch {
-        fatalError("Failed to create model container")
-    }
+    BookDetailsView(works: [
+        Work(workKey: "OL1", workTitle: "Sample Book", subtitle: "Subtitle", workDescription: "Description", firstPublishYear: 2020)
+    ])
 }
+

@@ -16,6 +16,14 @@ struct Author: Codable, FetchableRecord, PersistableRecord, TableRecord {
         case deathDate = "death_date"
         case wikipedia
     }
+    
+    enum CodingKeys: String, CodingKey {
+        case authorKey = "author_key"
+        case authorName = "author_name"
+        case birthDate = "birth_date"
+        case deathDate = "death_date"
+        case wikipedia
+    }
 }
 
 extension Author {
@@ -24,5 +32,32 @@ extension Author {
 }
 
 struct AuthorResponse: Codable {
-    let name: String
+    let authorKey: String
+    let authorName: String
+    let birthDate: String?
+    let deathDate: String?
+    let wikipedia: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case authorKey = "key"
+        case authorName = "name"
+        case birthDate = "birth_date"
+        case deathDate = "death_date"
+        case wikipedia
+    }
+    
+    // Custom initializer
+    init(authorKey: String,
+         authorName: String,
+         birthDate: String? = nil,
+         deathDate: String? = nil,
+         wikipedia: String? = nil
+    ) {
+        self.authorKey = authorKey
+        self.authorName = authorName
+        self.birthDate = birthDate
+        self.deathDate = deathDate
+        self.wikipedia = wikipedia
+    }
 }
+

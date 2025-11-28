@@ -19,6 +19,15 @@ struct UserBooks: Codable, FetchableRecord, PersistableRecord, TableRecord {
         case endDate = "end_date"
         case notes = "notes"
     }
+    
+    enum CodingKeys: String, CodingKey {
+        case editionKey = "edition_key"
+        case userRating = "user_rating"
+        case status = "status"
+        case startDate = "start_date"
+        case endDate = "end_date"
+        case notes = "notes"
+    }
 }
 
 extension UserBooks {

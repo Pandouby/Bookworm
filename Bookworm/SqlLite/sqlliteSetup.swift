@@ -19,6 +19,11 @@ struct AppDatabase {
     var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         
+        #if DEBUG
+        // Debuging only delete After
+        migrator.eraseDatabaseOnSchemaChange = true
+        #endif
+        
         migrator.registerMigration("createLanguages") { db in
             try db.create(table: "Languages") { t in
                 t.column("language_id", .text).primaryKey()
@@ -78,6 +83,7 @@ struct AppDatabase {
                 t.column("publish_date", .text)
                 t.column("oclc_number", .text)
                 t.column("revision", .integer)
+                t.column("cover", .text)
             }
         }
         
@@ -155,6 +161,7 @@ struct AppDatabase {
                     .notNull()
                     .indexed()
                     .references("Works", onDelete: .cascade)
+                    .primaryKey()
                 t.column("rating", .integer).notNull()
                 t.column("rating_date", .text).notNull()
                 
@@ -168,7 +175,7 @@ struct AppDatabase {
             try db.create(index: "idx_work_title", on: "Works", columns: ["work_title"])
             try db.create(index: "idx_author_name", on: "Authors", columns: ["author_name"])
             try db.create(index: "idx_edition_work", on: "Editions", columns: ["work_key"])
-            try db.create(index: "idx_rating_edition", on: "Ratings", columns: ["edition_key"])
+            try db.create(index: "idx_rating_work", on: "Ratings", columns: ["work_key"])
             try db.create(index: "idx_rating_date", on: "Ratings", columns: ["rating_date"])
         }
         

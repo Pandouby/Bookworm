@@ -10,6 +10,11 @@ struct Publisher: Codable, FetchableRecord, PersistableRecord, TableRecord {
         case publisherId = "publisher_id"
         case publisherName = "publisher_name"
     }
+    
+    enum CodingKeys: String, CodingKey {
+        case publisherId = "publisher_id"
+        case publisherName = "publisher_name"
+    }
 }
 
 extension Publisher {

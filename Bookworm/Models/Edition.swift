@@ -1,4 +1,5 @@
 import GRDB
+import GRDBQuery
 
 struct Edition: Codable, FetchableRecord, PersistableRecord, TableRecord {
     static let databaseTableName = "Editions"
@@ -30,6 +31,21 @@ struct Edition: Codable, FetchableRecord, PersistableRecord, TableRecord {
         case revision
         case cover
     }
+    
+    enum CodingKeys: String, CodingKey {
+        case editionKey = "edition_key"
+        case workKey = "work_key"
+        case physicalFormat = "physical_format"
+        case editionTitle = "edition_title"
+        case editionDescription = "edition_description"
+        case numberOfPages = "number_of_pages"
+        case isbn13 = "isbn_13"
+        case isbn10 = "isbn_10"
+        case publishDate = "publish_date"
+        case oclcNumber = "oclc_number"
+        case revision
+        case cover
+    }
 }
 
 extension Edition {
@@ -46,13 +62,37 @@ struct EditionListResponse: Codable {
 }
 
 struct EditionResponse: Codable {
-    let title: String?
-    let key: String
-    let number_of_pages: Int?
-    let isbn_13: [String]?
-    let isbn_10: [String]?
-    let publish_date: String?
-    let covers: [Int]?
-    let publishers: [String]?
+    var title: String
+    var key: String
+    var number_of_pages: Int?
+    var isbn_13: [String]?
+    var isbn_10: [String]?
+    var publish_date: String?
+    var languages: [LanguageResponse]?
+    var covers: [Int]?
+    var coverLink: String?
+    var publishers: [String]?
 }
 
+extension Edition {
+    /// Fetch all editions
+    static func allEditions() -> QueryInterfaceRequest<Edition> {
+        Edition.order(Columns.editionTitle.asc)
+    }
+    
+    /// Fetch editions belonging to a work
+    static func editions(forWorkKey key: String) -> QueryInterfaceRequest<Edition> {
+        Edition.filter(Columns.workKey == key)
+            .including(optional: Edition.languages)   // eager loading
+            .including(optional: Edition.publishers)
+            .including(optional: Edition.userBook)
+    }
+    
+    /// Fetch a single edition by key
+    static func edition(withKey key: String) -> QueryInterfaceRequest<Edition> {
+        Edition.filter(Columns.editionKey == key)
+            .including(optional: Edition.languages)
+            .including(optional: Edition.publishers)
+            .including(optional: Edition.userBook)
+    }
+}

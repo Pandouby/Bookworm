@@ -1,15 +1,6 @@
 import GRDB
 import Foundation
 
-// A struct that represents a complete book object from the user's library for use in views.
-struct UserBookView {
-    let work: Work
-    let edition: Edition
-    let authors: [Author]
-    let genres: [Genre]
-    let userDetails: UserBooks
-}
-
 struct DatabaseRepository {
     private static var dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue
 
@@ -100,10 +91,10 @@ struct DatabaseRepository {
     }
 
     /// Fetches all books in the user's library with all their details.
-    static func fetchAllUserBookDetails() throws -> [UserBookView] {
+    static func fetchAllUserBookDetails() throws -> [CompleteBookData] {
         try dbQueue.read { db in
-            let request = UserBooks.all()
-                .including(required: UserBooks.edition
+            let request = UserBookDetails.all()
+                .including(required: UserBookDetails.edition
                     .including(required: Edition.work
                         .including(all: Work.authors)
                         .including(all: Work.genres)
@@ -113,7 +104,7 @@ struct DatabaseRepository {
             let rows = try Row.fetchAll(db, request)
 
             return rows.map { row in
-                let userDetails: UserBooks = row[UserBooks.databaseTableName]
+                let userDetails: UserBookDetails = row[UserBookDetails.databaseTableName]
                 let edition: Edition = row[Edition.databaseTableName]
                 let work: Work = row[Work.databaseTableName]
                 let authors: [Author] = row[Author.databaseTableName]
@@ -121,8 +112,41 @@ struct DatabaseRepository {
                 
                 let genres = genreRecords.compactMap { Genre(rawValue: $0.genreName) }
                 
-                return UserBookView(work: work, edition: edition, authors: authors, genres: genres, userDetails: userDetails)
+                return CompleteBookData(work: work, edition: edition, authors: authors, genres: genres, userDetails: userDetails)
             }
+        }
+    }
+    
+    /// Save a CompleteBookData object to the database
+    static func saveCompleteBook(_ completeBook: CompleteBookData) throws {
+        try dbQueue.write { db in
+            // Save the work
+            try completeBook.work.save(db)
+            
+            // Save all authors
+            for author in completeBook.authors {
+                try author.save(db)
+                
+                // Link author to work
+                try AuthorWork(authorKey: author.authorKey, workKey: completeBook.work.workKey).save(db)
+            }
+            
+            // Save all genres
+            for genre in completeBook.genres {
+                let genreRecord = GenreRecord(genreId: genre.rawValue, genreName: genre.rawValue)
+                try genreRecord.save(db)
+                
+                // Link genre to work
+                try WorkGenre(workKey: completeBook.work.workKey, genreId: genre.rawValue).save(db)
+            }
+            
+            // Save the edition
+            try completeBook.edition.save(db)
+            
+            // Save UserBookDetails
+            try completeBook.userDetails.save(db)
+            
+            // Optional: handle edition publishers, languages, etc. here if needed
         }
     }
 

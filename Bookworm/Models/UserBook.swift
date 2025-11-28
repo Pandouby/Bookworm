@@ -1,7 +1,7 @@
 import GRDB
 import Foundation
 
-struct UserBooks: Codable, FetchableRecord, PersistableRecord, TableRecord {
+struct UserBookDetails: Codable, FetchableRecord, PersistableRecord, TableRecord {
     static let databaseTableName = "UserBooks"
     
     var editionKey: String
@@ -30,7 +30,7 @@ struct UserBooks: Codable, FetchableRecord, PersistableRecord, TableRecord {
     }
 }
 
-extension UserBooks {
+extension UserBookDetails {
     static let edition = belongsTo(Edition.self)
 }
 
@@ -40,3 +40,5 @@ struct UserBook {
     let authors: [Author]
     let genres: [Genre]
 }
+
+

@@ -50,7 +50,7 @@ struct Edition: Codable, FetchableRecord, PersistableRecord, TableRecord {
 
 extension Edition {
     static let work = belongsTo(Work.self)
-    static let userBook = hasOne(UserBooks.self)
+    static let userBook = hasOne(UserBookDetails.self)
     static let editionLanguages = hasMany(EditionLanguage.self)
     static let languages = hasMany(Language.self, through: editionLanguages, using: EditionLanguage.language)
     static let editionPublishers = hasMany(EditionPublisher.self)

@@ -160,7 +160,7 @@ struct BookSearchView: View {
             try DatabaseRepository.save(&author)
             try DatabaseRepository.addAuthor(key: author.authorKey, toWork: work.workKey)
             
-            var userBook = UserBooks(
+            var userBook = UserBookDetails(
                 editionKey: book.edition?.key ?? "",
                 userRating: 2.5,
                 status: status,
@@ -188,7 +188,7 @@ struct BookSearchView: View {
         var work = Work(workKey: bookId, workTitle: "New Book", subtitle: nil, workDescription: nil, firstPublishYear: nil)
         let editionKey = UUID().uuidString
         var edition = Edition(editionKey: editionKey, workKey: bookId, physicalFormat: nil, editionTitle: "New Book", editionDescription: nil, numberOfPages: 0, isbn13: nil, isbn10: nil, publishDate: nil, oclcNumber: nil, revision: nil, cover: nil)
-        var userBook = UserBooks(editionKey: editionKey, userRating: 2.5, status: .toDo, startDate: Date(), endDate: Date(), notes: "")
+        var userBook = UserBookDetails(editionKey: editionKey, userRating: 2.5, status: .toDo, startDate: Date(), endDate: Date(), notes: "")
 
         Task {
             do {

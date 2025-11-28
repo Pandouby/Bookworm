@@ -90,7 +90,7 @@ struct AppDatabase {
         let statusValues = Status.allCases.map { "'\($0.rawValue)'" }.joined(separator: ", ")
         
         migrator.registerMigration("createUserBooks") { db in
-            try db.create(table: "UserBooks") { t in
+            try db.create(table: "UserBookDetails") { t in
                 t.column("edition_key", .text).primaryKey()
                     .references("Editions", onDelete: .cascade)
                 t.column("user_rating", .real)

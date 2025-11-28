@@ -10,10 +10,14 @@ import Foundation
 import SwiftData
 import CodeScanner
 import SwiftUI
+import GRDBQuery
+import GRDB
 
 struct OwnedBooksView: View {
     @Environment(\.modelContext) private var modelContext
     @Query() private var books: [Book]
+    
+    @Query(AllCompleteBooksQuery()) var completeBooks: [CompleteBookData]
 
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
@@ -44,6 +48,10 @@ struct OwnedBooksView: View {
     }
 
     var body: some View {
+        List(completeBooks) { book in
+            Text(book.work.workTitle)
+        }
+        
         List {
             ForEach(isSearching ? searchResults : books) { book in
                 NavigationLink(destination: BookDetailsView(book: book)) {

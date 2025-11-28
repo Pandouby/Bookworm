@@ -13,16 +13,9 @@ import GRDBQuery
 import GRDB
 
 struct BookDetailsView: View {
-  
-    @Query(AllWorksQuery()) var works: [Work]
     @Bindable var book: Book
 
     var body: some View {
-  
-        List(works) { work in
-            Text(work.workTitle)
-        }
-        
         VStack {
             Form {
                 Section {
@@ -103,10 +96,10 @@ struct BookDetailsView: View {
         }
     }
 }
-
+/*
 #Preview {
     BookDetailsView(works: [
         Work(workKey: "OL1", workTitle: "Sample Book", subtitle: "Subtitle", workDescription: "Description", firstPublishYear: 2020)
     ])
 }
-
+*/

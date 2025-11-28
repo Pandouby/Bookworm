@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftData
 import GRDB
 import GRDBQuery
 
@@ -19,9 +18,7 @@ struct BookwormApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.databaseContext, appDatabase.dbQueue)
         }
-        // Keep your SwiftData model container
-        .modelContainer(for: Book.self)
+        .databaseContext(.readWrite{appDatabase.dbQueue})
     }
 }

@@ -50,7 +50,7 @@ struct Edition: Codable, FetchableRecord, PersistableRecord, TableRecord {
 
 extension Edition {
     static let work = belongsTo(Work.self)
-    static let userBook = hasOne(UserBookDetails.self)
+    static let userBookDetail = hasOne(UserBookDetails.self)
     static let editionLanguages = hasMany(EditionLanguage.self)
     static let languages = hasMany(Language.self, through: editionLanguages, using: EditionLanguage.language)
     static let editionPublishers = hasMany(EditionPublisher.self)
@@ -64,6 +64,7 @@ struct EditionListResponse: Codable {
 struct EditionResponse: Codable {
     var title: String
     var key: String
+    var works: [WorkKeyElement]?
     var number_of_pages: Int?
     var isbn_13: [String]?
     var isbn_10: [String]?
@@ -85,7 +86,7 @@ extension Edition {
         Edition.filter(Columns.workKey == key)
             .including(optional: Edition.languages)   // eager loading
             .including(optional: Edition.publishers)
-            .including(optional: Edition.userBook)
+            .including(optional: Edition.userBookDetail)
     }
     
     /// Fetch a single edition by key
@@ -93,6 +94,6 @@ extension Edition {
         Edition.filter(Columns.editionKey == key)
             .including(optional: Edition.languages)
             .including(optional: Edition.publishers)
-            .including(optional: Edition.userBook)
+            .including(optional: Edition.userBookDetail)
     }
 }

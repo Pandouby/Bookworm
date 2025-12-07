@@ -5,6 +5,16 @@ struct WorkGenre: Codable, FetchableRecord, PersistableRecord, TableRecord {
     
     var workKey: String
     var genreId: String
+    
+    enum Columns: String, ColumnExpression {
+        case workKey = "work_key"
+        case genreId = "genre_id"
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case workKey = "work_key"
+        case genreId = "genre_id"
+    }
 }
 
 extension WorkGenre {

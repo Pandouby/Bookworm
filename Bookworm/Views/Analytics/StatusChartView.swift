@@ -7,31 +7,23 @@
 
 import Charts
 import Foundation
-import SwiftData
 import SwiftUI
+import GRDB
+import GRDBQuery
 
 struct StatusChartView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var books: [Book]
+    @Query(AllCompleteBooksQuery(statuses: [.toDo, .inProgress, .onPause, .done])) var completeBooks: [CompleteBookData]
     @State private var chartEntries: [StatusChartEntry] = []
 
     @State private var selectedAngle: Int?
     @State private var selectedStatus: StatusChartEntry?
-
-    init() {
-        let filter = #Predicate<Book> { book in
-            book.statusOrder != 0  // Filters out all books with the status "want to read"
-        }
-
-        _books = Query(filter: filter)
-    }
 
     private var titleView: some View {
         VStack {
             Text(selectedStatus?.status.rawValue ?? "Status")
                 .font(.title)
             Text(
-                (selectedStatus?.count.formatted() ?? books.count.formatted())
+                (selectedStatus?.count.formatted() ?? completeBooks.count.formatted())
                     + " books"
             )
             .font(.callout)
@@ -120,8 +112,8 @@ struct StatusChartView: View {
     private func calculateChartEntries() {
         var statusDict: [Status: Int] = [:]
 
-        for book in books {
-            statusDict[book.status, default: 0] += 1
+        for book in completeBooks {
+            statusDict[book.userDetails.status, default: 0] += 1
         }
 
         self.chartEntries =

@@ -33,6 +33,57 @@ struct DatabaseRepository {
             _ = try T.deleteAll(db)
         }
     }
+    
+    /// Delete a CompleteBookData and any related records that are no longer referenced
+    static func deleteCompleteBook(_ completeBook: CompleteBookData) throws {
+        try dbQueue.write { db in
+            // 1. Delete the UserBookDetails record.
+            try UserBookDetails.deleteOne(db, key: completeBook.userDetails.editionKey)
+            
+            // 2. Check if the Edition is now an orphan.
+            let editionKey = completeBook.edition.editionKey
+            let otherUserBooksForEditionRequest = UserBookDetails.filter(UserBookDetails.Columns.editionKey == editionKey)
+            
+            if try otherUserBooksForEditionRequest.fetchCount(db) == 0 {
+                // This was the last user book for this edition. It's safe to delete the edition.
+                try Edition.deleteOne(db, key: editionKey)
+                
+                // 3. Check if the Work is now an orphan.
+                let workKey = completeBook.work.workKey
+                let otherEditionsForWorkRequest = Edition.filter(Edition.Columns.workKey == workKey)
+                
+                if try otherEditionsForWorkRequest.fetchCount(db) == 0 {
+                    // This was the last edition for this work. It's safe to delete the work
+                    // and its many-to-many relationships.
+                    try Work.deleteOne(db, key: workKey)
+                    
+                    // Delete associations from AuthorWork
+                    try AuthorWork.filter(AuthorWork.Columns.workKey == workKey).deleteAll(db)
+                    
+                    // Delete associations from WorkGenre
+                    try WorkGenre.filter(WorkGenre.Columns.workKey == workKey).deleteAll(db)
+                    
+                    // 4. Check if any Authors are now orphans.
+                    for author in completeBook.authors {
+                        let authorKey = author.authorKey
+                        let otherWorksForAuthorRequest = AuthorWork.filter(AuthorWork.Columns.authorKey == authorKey)
+                        if try otherWorksForAuthorRequest.fetchCount(db) == 0 {
+                            try Author.deleteOne(db, key: authorKey)
+                        }
+                    }
+                    
+                    // 5. Check if any Genres are now orphans.
+                    for genre in completeBook.genres {
+                        let genreId = genre.rawValue
+                        let otherWorksForGenreRequest = WorkGenre.filter(WorkGenre.Columns.genreId == genreId)
+                        if try otherWorksForGenreRequest.fetchCount(db) == 0 {
+                            try GenreRecord.deleteOne(db, key: genreId)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // MARK: - Read Operations
 
@@ -93,7 +144,8 @@ struct DatabaseRepository {
     /// Fetches all books in the user's library with all their details.
     static func fetchAllUserBookDetails() throws -> [CompleteBookData] {
         try dbQueue.read { db in
-            let request = UserBookDetails.all()
+            
+            let request = UserBookDetails
                 .including(required: UserBookDetails.edition
                     .including(required: Edition.work
                         .including(all: Work.authors)
@@ -102,18 +154,55 @@ struct DatabaseRepository {
                 )
             
             let rows = try Row.fetchAll(db, request)
-
-            return rows.map { row in
-                let userDetails: UserBookDetails = row[UserBookDetails.databaseTableName]
-                let edition: Edition = row[Edition.databaseTableName]
-                let work: Work = row[Work.databaseTableName]
+            
+            return try rows.map { row in
+                let userDetails: UserBookDetails = try UserBookDetails(row: row)
+                let edition: Edition = row["Edition"]
+                let work: Work = row["Work"]
                 let authors: [Author] = row[Author.databaseTableName]
                 let genreRecords: [GenreRecord] = row[GenreRecord.databaseTableName]
                 
                 let genres = genreRecords.compactMap { Genre(rawValue: $0.genreName) }
                 
-                return CompleteBookData(work: work, edition: edition, authors: authors, genres: genres, userDetails: userDetails)
+                return CompleteBookData(
+                    work: work,
+                    edition: edition,
+                    authors: authors,
+                    genres: genres,
+                    userDetails: userDetails
+                )
             }
+        }
+    }
+    
+    /// Query the all books and there details for live update
+    static func queryAllUserBookDetails(db: Database) throws -> [CompleteBookData] {
+        let request = UserBookDetails
+            .including(required: UserBookDetails.edition
+                .including(required: Edition.work
+                    .including(all: Work.authors)
+                    .including(all: Work.genres)
+                )
+            )
+        
+        let rows = try Row.fetchAll(db, request)
+        
+        return try rows.map { row in
+            let userDetails: UserBookDetails = try UserBookDetails(row: row)
+            let edition: Edition = row["Edition"]
+            let work: Work = row["Work"]
+            let authors: [Author] = row[Author.databaseTableName]
+            let genreRecords: [GenreRecord] = row[GenreRecord.databaseTableName]
+            
+            let genres = genreRecords.compactMap { Genre(rawValue: $0.genreName) }
+            
+            return CompleteBookData(
+                work: work,
+                edition: edition,
+                authors: authors,
+                genres: genres,
+                userDetails: userDetails
+            )
         }
     }
     

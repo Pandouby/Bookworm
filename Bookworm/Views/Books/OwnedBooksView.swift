@@ -7,59 +7,43 @@
 
 import AVFoundation
 import Foundation
-import SwiftData
 import CodeScanner
 import SwiftUI
 import GRDBQuery
 import GRDB
 
 struct OwnedBooksView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query() private var books: [Book]
+    @Query(AllCompleteBooksQuery(statuses: [.toDo, .inProgress, .onPause, .done])) var completeBooks: [CompleteBookData]
     
-    @Query(AllCompleteBooksQuery()) var completeBooks: [CompleteBookData]
+    var ownedBooks: [CompleteBookDataViewModel] {
+        completeBooks
+            .map { .init(from: $0) }
+            .sorted()
+    }
 
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
     @State private var showBookNotFoundAlert = false
+    @State private var selectedLanguages = ["eng"]
 
     @State private var isBookSearchShowing = false
 
-    @State var searchResults: [Book] = []
+    @State var searchResults: [CompleteBookDataViewModel] = []
     @State var searchQuery: String = ""
 
     var isSearching: Bool {
         return !searchQuery.isEmpty
     }
 
-    init() {
-        let filter = #Predicate<Book> { book in
-            book.statusOrder != 0
-        }
-        
-        let sort: [SortDescriptor<Book>] = [
-            SortDescriptor(\Book.statusOrder),
-            SortDescriptor(\Book.finishedDate, order: .reverse),
-            SortDescriptor(\Book.dateAdded, order: .reverse),
-            SortDescriptor(\Book.title)
-        ]
-        
-        _books = Query(filter: filter, sort: sort)
-    }
-
-    var body: some View {
-        List(completeBooks) { book in
-            Text(book.work.workTitle)
-        }
-        
+    var body: some View {        
         List {
-            ForEach(isSearching ? searchResults : books) { book in
+            ForEach(isSearching ? searchResults: ownedBooks) { book in
                 NavigationLink(destination: BookDetailsView(book: book)) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(book.title).font(.headline)
-                            book.author.isEmpty
-                                ? Text(" ") : Text(book.author)
+                            Text(book.workTitle).font(.headline)
+                            
+                            Text(book.authorName)
                         }
 
                         StatusIcon(status: book.status)
@@ -69,14 +53,18 @@ struct OwnedBooksView: View {
                 .swipeActions(edge: .leading, allowsFullSwipe: true) {
                     Button("Done") {
                         book.status = Status.done
-                        book.statusOrder = book.status.sortOrder
+                        Task {
+                            try DatabaseRepository.saveCompleteBook(book.asRecord)
+                        }
                     }
                     .tint(.done)
                 }
                 .swipeActions(edge: .leading) {
                     Button("Reading") {
                         book.status = Status.inProgress
-                        book.statusOrder = book.status.sortOrder
+                        Task {
+                            try DatabaseRepository.saveCompleteBook(book.asRecord)
+                        }
                     }
                     .tint(.inProgress)
                 }
@@ -134,7 +122,11 @@ struct OwnedBooksView: View {
                 simulatedData: "9781784162122",
                 videoCaptureDevice: AVCaptureDevice.zoomedCameraForQRCode(
                     withMinimumCodeSize: 15),
-                completion: handleScan
+                completion: { result in
+                    Task {
+                        await handleScan(result: result)
+                    }
+                }
             )
             .ignoresSafeArea()
         }
@@ -153,7 +145,11 @@ struct OwnedBooksView: View {
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(books[index])
+                print("Delete item at: \(index)")
+                print(ownedBooks[index].workTitle)
+                Task {
+                    try DatabaseRepository.deleteCompleteBook(ownedBooks[index].asRecord)
+                }
             }
         }
     }
@@ -161,18 +157,20 @@ struct OwnedBooksView: View {
     private func deleteSearchItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(searchResults[index])
+                print("delete search item at: \(index)")
                 searchResults.remove(at: index)
             }
         }
     }
     
-    private func handleScan(result: Result<ScanResult, ScanError>) {
+    private func handleScan(result: Result<ScanResult, ScanError>) async {
         isShowingScanner = false
 
         switch result {
         case .success(let result):
-            getBookData(isbn: result.string)
+            
+        await getCompleteBookDataByIsbn(isbn: result.string)
+    
         case .failure(let error):
             print("Scanning failed: \(error.localizedDescription)")
         }
@@ -181,56 +179,37 @@ struct OwnedBooksView: View {
     private func fetchSearchResults(for query: String) {
         let searchQuery = query.lowercased()  // Make the query case-insensitive
 
-        searchResults = books.filter { book in
-            book.title.lowercased().contains(searchQuery)
-                || book.author.lowercased().contains(searchQuery)
+        searchResults = ownedBooks.filter { book in
+            book.workTitle.lowercased().contains(searchQuery)
+                || book.authorName.lowercased().contains(searchQuery)
         }
     }
 
-    private func getBookData(isbn: String) {
-        let url = URL(
-            string: "https://www.googleapis.com/books/v1/volumes?q=isbn:\(isbn)"
-        )!
-
-        let task = URLSession.shared.dataTask(with: url) {
-            (data, response, error) in
-            guard let data = data else { return }
-            print(String(data: data, encoding: .utf8)!)
-            do {
-                let jsonData = try JSONDecoder().decode(
-                    BookResponse.self, from: data)
-
-                if let bookData = jsonData.items?.first?.volumeInfo {
-                    let title = bookData.title ?? "N/A"
-                    let authors = bookData.authors?.first ?? "Unknown Author"
-                    let pageCount = bookData.pageCount ?? 0
-                    let genre = bookData.categories?.first ?? "Non-Classifiable"
-
-                    print(bookData)
-
-                    let newBook = Book(
-                        isbn: isbn,
-                        title: title,
-                        author: authors,
-                        pages: pageCount,
-                        genre: Genre(rawValue: genre) ?? Genre.nonClassifiable
-                    )
-
-                    DispatchQueue.main.async {
-                        modelContext.insert(newBook)
-                    }
-                } else {
-                    print("No book data found for the given ISBN.")
-                    showBookNotFoundAlert = true
-                }
-
-            } catch let error {
-                print("Failed to parse Json: \(error)")
+    public func getCompleteBookDataByIsbn(isbn: String) async {
+        /*
+         // Google Book Api
+        guard let url = URL(string: "https://www.googleapis.com/books/v1/volumes?q=isbn:\(isbn)"
+        )
+         */
+        
+        guard let url = URL(string: "https://openlibrary.org/isbn/\(isbn).json")
+        else { return }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let edition = try JSONDecoder().decode(EditionResponse.self, from: data)
+            
+            if let fullSearchResult = await fetchCompleteBookDataByEdition(for: edition, languages: selectedLanguages) {
+                print(fullSearchResult)
+                await saveFullSearchResultToDB(book: fullSearchResult, status: Status.toDo)
+            } else {
+                print("Failed to fetch complete book data for edition: \(edition)")
                 showBookNotFoundAlert = true
             }
+            
+        } catch let error {
+            print("Failed to parse Json: \(error)")
+            showBookNotFoundAlert = true
         }
-
-        task.resume()
     }
 }
 

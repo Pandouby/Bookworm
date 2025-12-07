@@ -43,6 +43,24 @@ extension Work {
     static let genres = hasMany(GenreRecord.self, through: workGenres, using: WorkGenre.genre)
 }
 
+extension Work {
+    func copy(
+        workKey: String? = nil,
+        workTitle: String? = nil,
+        subtitle: String? = nil,
+        workDescription: String? = nil,
+        firstPublishYear: Int? = nil
+    ) -> Work {
+        Work(
+            workKey: workKey ?? self.workKey,
+            workTitle: workTitle ?? self.workTitle,
+            subtitle: subtitle ?? self.subtitle,
+            workDescription: workDescription ?? self.workDescription,
+            firstPublishYear: firstPublishYear ?? self.firstPublishYear
+        )
+    }
+}
+
 struct WorkResponse: Codable {
     let workKey: String
     let workTitle: String
@@ -69,15 +87,23 @@ struct DetailWorkResponse: Codable {
     let workKey: String
     let workTitle: String
     let description: String?
+    let authors: [AuthorWorkResponse]?
     let subjects: [String]?
+    let languages: [String]?
+    let firstPublishYear: Int?
     
     enum CodingKeys: String, CodingKey {
         case workKey = "key"
         case workTitle = "title"
         case description
+        case authors
         case subjects
+        case languages = "language"
+        case firstPublishYear = "first_publish_year"
     }
 }
+
+
 
 extension Work {
     /// Fetch all works
@@ -92,7 +118,7 @@ extension Work {
             .including(all: Work.editions
                 .including(optional: Edition.publishers)
                 .including(optional: Edition.languages)
-                .including(optional: Edition.userBook)
+                .including(optional: Edition.userBookDetail)
             )
             .including(all: Work.authors)
             .including(all: Work.languages)
@@ -107,4 +133,8 @@ struct AllWorksQuery: ValueObservationQueryable {
     func fetch(_ db: Database) throws -> [Work] {
         try Work.fetchAll(db)
     }
+}
+
+struct WorkKeyElement: Codable {
+        let key: String
 }

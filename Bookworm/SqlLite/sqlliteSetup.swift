@@ -12,6 +12,8 @@ struct AppDatabase {
             .appendingPathComponent("app.sqlite")
             .path
         
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].path)
+        
         dbQueue = try! DatabaseQueue(path: path)
         try! migrator.migrate(dbQueue)
     }
@@ -89,10 +91,11 @@ struct AppDatabase {
         
         let statusValues = Status.allCases.map { "'\($0.rawValue)'" }.joined(separator: ", ")
         
-        migrator.registerMigration("createUserBooks") { db in
+        migrator.registerMigration("createUserBookDetails") { db in
             try db.create(table: "UserBookDetails") { t in
                 t.column("edition_key", .text).primaryKey()
                     .references("Editions", onDelete: .cascade)
+                t.column("added_date", .text)
                 t.column("user_rating", .real)
                 t.column("status", .text)
                 t.column("start_date", .text)
@@ -100,6 +103,7 @@ struct AppDatabase {
                 t.column("notes", .text)
                 
                 // Auto-generated CHECK constraint
+                t.check(sql: "user_rating >= 1 AND user_rating <= 5")
                 t.check(sql: "status IN (\(statusValues))")
             }
         }
@@ -156,17 +160,19 @@ struct AppDatabase {
         
         migrator.registerMigration("createRatings") { db in
             try db.create(table: "Ratings") { t in
-                t.column("rating_id", .integer).primaryKey(autoincrement: true)
+                t.column("rating_id", .integer)
                 t.column("work_key", .text)
                     .notNull()
                     .indexed()
                     .references("Works", onDelete: .cascade)
-                    .primaryKey()
                 t.column("rating", .integer).notNull()
                 t.column("rating_date", .text).notNull()
                 
                 // rating 1–5 constraint
                 t.check(sql: "rating >= 1 AND rating <= 5")
+                
+                // Composite primary key
+                t.primaryKey(["rating_id", "work_key"])
             }
         }
         
@@ -182,4 +188,43 @@ struct AppDatabase {
         return migrator
     }
     
+    // MARK: - Preview
+    
+    /// Creates a preview `DatabaseQueue` for SwiftUI previews.
+    static func preview() -> DatabaseQueue {
+        let config = Configuration()
+        let dbQueue = try! DatabaseQueue(path: ":memory:", configuration: config)
+        
+        let appDatabase = AppDatabase.shared
+        try! appDatabase.migrator.migrate(dbQueue)
+        
+        // Populate with sample data
+        try! createPreviewData(dbQueue)
+        
+        return dbQueue
+    }
+    
+    /// Populates the database with sample data for previews.
+    private static func createPreviewData(_ dbQueue: DatabaseQueue) throws {
+        let sampleBooks = [
+            CompleteBookData(
+                work: Work(workKey: "W1", workTitle: "The Hobbit", subtitle: nil, workDescription: "A fantasy novel.", firstPublishYear: 1937),
+                edition: Edition(editionKey: "E1", workKey: "W1", editionTitle: "The Hobbit", numberOfPages: 310, isbn13: "978-0-395-07122-1"),
+                authors: [Author(authorKey: "A1", authorName: "J.R.R. Tolkien")],
+                genres: [.fiction, .juvenile],
+                userDetails: UserBookDetails(editionKey: "E1", addedDate: Date(), userRating: 5, status: .inProgress, startDate: Date().addingTimeInterval(-86400 * 10), endDate: Date(), notes: "A classic!")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W2", workTitle: "Dune", subtitle: nil, workDescription: "A science fiction novel.", firstPublishYear: 1965),
+                edition: Edition(editionKey: "E2", workKey: "W2", editionTitle: "Dune", numberOfPages: 412, isbn13: "978-0-441-01359-3"),
+                authors: [Author(authorKey: "A2", authorName: "Frank Herbert")],
+                genres: [.fiction, .science],
+                userDetails: UserBookDetails(editionKey: "E2", addedDate: Date(), userRating: 4, status: .toDo, startDate: Date(), endDate: Date(), notes: "Must read soon.")
+            )
+        ]
+        
+        for book in sampleBooks {
+            try DatabaseRepository.saveCompleteBook(book)
+        }
+    }
 }

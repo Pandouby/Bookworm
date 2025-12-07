@@ -1,22 +1,9 @@
-import Foundation
-import SwiftData
-//
-//  Untitled.swift
-//  Bookworm
-//
-//  Created by Silvan Dubach on 21.10.2024.
-//
 import SwiftUI
+import GRDBQuery
+import GRDB
 
 struct BooksView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: [
-        SortDescriptor(\Book.statusOrder),
-        SortDescriptor(\Book.finishedDate, order: .reverse),
-        SortDescriptor(\Book.dateAdded, order: .reverse),
-        SortDescriptor(\Book.title),
-    ])
-    private var books: [Book]
+    @Query(AllCompleteBooksQuery()) private var completeBooks: [CompleteBookData]
 
     var body: some View {
         NavigationStack {
@@ -71,7 +58,7 @@ struct BooksView: View {
                                     .padding(.top, 5)
 
                                 Text(
-                                    "\(books.filter { $0.status != .wantToRead }.count) items"
+                                    "\(completeBooks.filter { $0.userDetails.status != .wantToRead }.count) items"
                                 )
                                 .foregroundStyle(.white)
                                 .opacity(0.8)
@@ -122,7 +109,7 @@ struct BooksView: View {
                                     .padding(.top, 5)
 
                                 Text(
-                                    "\(books.filter { $0.status == .wantToRead }.count) items"
+                                    "\(completeBooks.filter { $0.userDetails.status == .wantToRead }.count) items"
                                 )
                                 .foregroundStyle(.white)
                                 .opacity(0.8)
@@ -137,12 +124,12 @@ struct BooksView: View {
                     }
                 }
 
-                let currentBook = books.filter {
-                    $0.status == Status.inProgress
+                let currentBook = completeBooks.filter {
+                    $0.userDetails.status == Status.inProgress
                 }.first
 
                 NavigationLink(
-                    destination: currentBook.map { BookDetailsView(book: $0) }
+                    destination: currentBook.map { BookDetailsView(book: CompleteBookDataViewModel(from: $0)) }
                 ) {
                     ZStack(alignment: .topLeading) {
                         Rectangle()
@@ -174,7 +161,7 @@ struct BooksView: View {
                                 .foregroundColor(.white)
                                 .opacity(0.6)
 
-                            Text("Currenlty reading")
+                            Text("Currently reading")
                                 .font(.title3)
                                 .foregroundStyle(.white)
                                 .bold()
@@ -184,16 +171,16 @@ struct BooksView: View {
                                 HStack(alignment: .top) {
                                     VStack(alignment: .leading) {
 
-                                        Text("\(currentBook.title)")
+                                        Text(currentBook.edition.editionTitle ?? currentBook.work.workTitle)
                                             .foregroundStyle(.white)
                                             .bold()
 
-                                        Text("By \(currentBook.author)")
+                                        Text("By \(currentBook.authors.first?.authorName ?? "Unknown Author")")
                                             .foregroundStyle(.white)
                                             .opacity(0.8)
 
                                         Text(
-                                            "Started at \(dateStringFormatter(date: currentBook.startedDate, formattingString: "MMMM dd"))"
+                                            "Started at \(dateStringFormatter(date: currentBook.userDetails.startDate, formattingString: "MMMM dd"))"
                                         )
                                         .foregroundStyle(.white)
                                         .opacity(0.8)
@@ -204,11 +191,11 @@ struct BooksView: View {
                                     Spacer()
 
                                     VStack(alignment: .trailing) {
-                                        Text("\(currentBook.genre.rawValue)")
+                                        Text(currentBook.genres.first?.rawValue ?? "N/A")
                                             .foregroundStyle(.white)
                                             .opacity(0.8)
 
-                                        Text("\(currentBook.pageCount) pages")
+                                        Text("\(currentBook.edition.numberOfPages ?? 0) pages")
                                             .foregroundStyle(.white)
                                             .opacity(0.8)
                                         Spacer()
@@ -240,19 +227,9 @@ struct BooksView: View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Book.self, configurations: config)
-
-    for i in 1..<10 {
-        let book = Book(
-            isbn: "1234", title: "Test", author: "Test", pages: 123,
-            genre: Genre.fiction,
-            bookDescription:
-                "A test book to check if the layouting is working properly. This book has no content and is fake."
-        )
-        container.mainContext.insert(book)
-    }
-
-    return BooksView()
-        .modelContainer(container)
+    let dbQueue = AppDatabase.preview()
+    
+    BooksView()
+        .databaseContext(.readWrite { dbQueue })
 }
+

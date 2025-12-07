@@ -61,3 +61,10 @@ struct AuthorResponse: Codable {
     }
 }
 
+struct AuthorWorkResponse: Codable {
+    let author: AuthorKeyElement
+}
+
+struct AuthorKeyElement: Codable {
+    let key: String
+}

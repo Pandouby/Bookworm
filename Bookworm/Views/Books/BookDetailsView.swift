@@ -13,7 +13,7 @@ import GRDBQuery
 import GRDB
 
 struct BookDetailsView: View {
-    @Bindable var book: Book
+    @Bindable var book: CompleteBookDataViewModel
 
     var body: some View {
         VStack {
@@ -21,24 +21,30 @@ struct BookDetailsView: View {
                 Section {
                     NavigationLink(
                         destination: EditFieldView(
-                            fieldName: "Title", inputValue: $book.title)
+                            fieldName: "Title", inputValue: $book.workTitle)
                     ) {
                         HStack {
                             Text("Title")
                             Spacer()
-                            Text(book.title)
+                            Text(book.workTitle)
                         }
+                    }
+                    .onChange(of: book.workTitle) {
+                        saveData(book: book)
                     }
 
                     NavigationLink(
                         destination: EditFieldView(
-                            fieldName: "Author", inputValue: $book.author)
+                            fieldName: "Author", inputValue: $book.authorName)
                     ) {
                         HStack {
                             Text("Author")
                             Spacer()
-                            Text(book.author)
+                            Text(book.authorName)
                         }
+                    }
+                    .onChange(of: book.authorName) {
+                        saveData(book: book)
                     }
 
                     Picker("Genre", selection: $book.genre) {
@@ -47,12 +53,20 @@ struct BookDetailsView: View {
                         }
                     }
                     .pickerStyle(.navigationLink)
+                    .onChange(of: book.genre) {
+                        print(book.genre)
+                        saveData(book: book)
+                    }
 
                     TextField("Pages", value: $book.pageCount, format: .number)
                         .keyboardType(.asciiCapableNumberPad)
+                        .onChange(of: book.pageCount) {
+                            saveData(book: book)
+                        }
                 }
 
                 Section {
+                    
                     Picker("Status", selection: $book.status) {
                         ForEach(Status.allCases) { status in
                             HStack {
@@ -63,23 +77,32 @@ struct BookDetailsView: View {
                     }
                     .pickerStyle(.menu)
                     .onChange(of: book.status) {
-                        book.statusOrder = book.status.sortOrder
+                        saveData(book: book)
                     }
 
-                    RatingView($book.rating, maxRating: 5).padding(5)
+                    RatingView($book.userRating, maxRating: 5).padding(5)
+                        .onChange(of: book.userRating) {
+                            saveData(book: book)
+                        }
 
                     DatePicker(
                         "Started",
-                        selection: $book.startedDate, displayedComponents: .date
+                        selection: $book.startDate, displayedComponents: .date
                     ).onSubmit {
                         // Handle submission for Started
                     }
-
+                    .onChange(of: book.startDate) {
+                        saveData(book: book)
+                    }
+                    
                     DatePicker(
                         "Finished",
-                        selection: $book.finishedDate, displayedComponents: .date
+                        selection: $book.endDate, displayedComponents: .date
                     ).onSubmit {
                         // Handle submission for Finished
+                    }
+                    .onChange(of: book.endDate) {
+                        saveData(book: book)
                     }
 
                     VStack(alignment: .leading) {
@@ -90,16 +113,22 @@ struct BookDetailsView: View {
                             .background(Color(UIColor.systemGray5))  // Background for TextEditor
                             .cornerRadius(10)  // Rounded corners for aesthetics
                     }
+                    .onChange(of: book.notes) {
+                        saveData(book: book)
+                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
-/*
-#Preview {
-    BookDetailsView(works: [
-        Work(workKey: "OL1", workTitle: "Sample Book", subtitle: "Subtitle", workDescription: "Description", firstPublishYear: 2020)
-    ])
+
+private func saveData(book: CompleteBookDataViewModel) {
+    print("Autosave on change")
+    print(book.genre)
+    print(book.genresEdited)
+    print(book.asRecord)
+    Task {
+        try DatabaseRepository.saveCompleteBook(book.asRecord)
+    }
 }
-*/

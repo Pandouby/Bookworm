@@ -19,8 +19,20 @@ struct CompleteBookData: Codable, FetchableRecord, PersistableRecord, Identifiab
 
 struct AllCompleteBooksQuery: ValueObservationQueryable {
     static var defaultValue: [CompleteBookData] { [] }
+
+    var statuses: [Status] = []
     
     func fetch(_ db: Database) throws -> [CompleteBookData] {
-        try CompleteBookData.fetchAll(db)
+        //let allBooks = try CompleteBookData.fetchAll(db)
+        let allBooks = try DatabaseRepository.queryAllUserBookDetails(db: db)
+        
+        // no filter -> return all
+        if statuses.isEmpty {
+            return allBooks
+        }
+        
+        return allBooks.filter { statuses.contains($0.userDetails.status) }
     }
 }
+
+

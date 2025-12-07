@@ -7,45 +7,37 @@
 
 import AVFoundation
 import Foundation
-import SwiftData
 import SwiftUI
+import GRDB
+import GRDBQuery
 
 struct WantToReadView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query() private var wantToReadList: [Book]
+    @Query(AllCompleteBooksQuery(statuses: [.wantToRead])) var completeBooks: [CompleteBookData]
+    
+    var wantToReadBooks: [CompleteBookDataViewModel] {
+        completeBooks
+            .map { CompleteBookDataViewModel(from: $0) }
+            .sorted { $0.addedDate > $1.addedDate }
+    }
 
     @State private var isBookSearchShowing = false
 
-    @State var searchResults: [Book] = []
+    @State var searchResults: [CompleteBookDataViewModel] = []
     @State var searchQuery: String = ""
 
     var isSearching: Bool {
         return !searchQuery.isEmpty
     }
-    
-    init() {
-        let filter = #Predicate<Book> { book in
-            book.statusOrder == 0
-        }
-        
-        let sort: [SortDescriptor<Book>] = [
-            SortDescriptor(\Book.dateAdded, order: .reverse),
-            SortDescriptor(\Book.title),
-        ]
-        
-        _wantToReadList = Query(filter: filter, sort: sort)
-    }
-
 
     var body: some View {
         List {
-            ForEach(isSearching ? searchResults : wantToReadList) { book in
+            ForEach(isSearching ? searchResults : wantToReadBooks) { book in
                 NavigationLink(destination: BookDetailsView(book: book)) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(book.title).font(.headline)
-                            book.author.isEmpty
-                                ? Text(" ") : Text(book.author)
+                            Text(book.workTitle).font(.headline)
+                            
+                            Text(book.authorName)
                         }
 
                         StatusIcon(status: book.status)
@@ -55,7 +47,6 @@ struct WantToReadView: View {
                 .swipeActions(edge: .leading) {
                     Button("Add to Owned") {
                         book.status = Status.toDo
-                        book.statusOrder = book.status.sortOrder
                     }
                     .tint(.blue)
                 }
@@ -95,7 +86,11 @@ struct WantToReadView: View {
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(wantToReadList[index])
+                print("Delete item at: \(index)")
+                print(wantToReadBooks[index].workTitle)
+                Task {
+                    try DatabaseRepository.deleteCompleteBook(wantToReadBooks[index].asRecord)
+                }
             }
         }
     }
@@ -103,7 +98,7 @@ struct WantToReadView: View {
     private func deleteSearchItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(searchResults[index])
+                //modelContext.delete(searchResults[index])
                 searchResults.remove(at: index)
             }
         }
@@ -112,9 +107,9 @@ struct WantToReadView: View {
     private func fetchSearchResults(for query: String) {
         let searchQuery = query.lowercased()
 
-        searchResults = wantToReadList.filter { book in
-            book.title.lowercased().contains(searchQuery)
-                || book.author.lowercased().contains(searchQuery)
+        searchResults = wantToReadBooks.filter { book in
+            book.workTitle.lowercased().contains(searchQuery)
+            || ((book.authorName.lowercased().contains(searchQuery)) != false)
         }
     }
 }

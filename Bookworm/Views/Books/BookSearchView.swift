@@ -37,9 +37,18 @@ struct BookSearchView: View {
     // MARK: - Subviews
     
     private var loadingView: some View {
-        ProgressView("Searching...")
-            .progressViewStyle(CircularProgressViewStyle())
-            .scaleEffect(1.5)
+        VStack {
+            /*
+            ProgressView("Searching...")
+                .progressViewStyle(CircularProgressViewStyle())
+                .scaleEffect(1.5)
+             */
+            
+            Image(systemName: "square.stack.3d.up")
+                .symbolEffect(.variableColor.iterative, options: .repeating.speed(3))
+                .font(.largeTitle)
+                .scaleEffect(1.5)
+        }
     }
     
     private var noResultsView: some View {

@@ -13,7 +13,7 @@ func saveFullSearchResultToDB(book: FullSearchResult, status: Status) async {
             workKey: book.work.workKey,
             workTitle: book.work.workTitle,
             subtitle: nil,
-            workDescription: book.work.description,
+            workDescription: book.work.description?.text,
             firstPublishYear: book.work.firstPublishYear
         )
         try DatabaseRepository.save(&work)
@@ -27,7 +27,7 @@ func saveFullSearchResultToDB(book: FullSearchResult, status: Status) async {
             editionKey: editionData.key,
             workKey: book.work.workKey,
             editionTitle: editionData.title,
-            editionDescription: book.work.description,
+            editionDescription: book.work.description?.text,
             numberOfPages: editionData.number_of_pages,
             isbn13: editionData.isbn_13?.first,
             isbn10: editionData.isbn_10?.first,
@@ -55,6 +55,7 @@ func saveFullSearchResultToDB(book: FullSearchResult, status: Status) async {
             editionKey: book.edition?.key ?? "",
             addedDate: Date(),
             userRating: 2.5,
+            isFavorite: false,
             status: status,
             startDate: Date(),
             endDate: Date(),
@@ -81,7 +82,7 @@ func addEmptyBook() {
     var work = Work(workKey: bookId, workTitle: "New Book", subtitle: nil, workDescription: nil, firstPublishYear: nil)
     let editionKey = UUID().uuidString
     var edition = Edition(editionKey: editionKey, workKey: bookId, physicalFormat: nil, editionTitle: "New Book", editionDescription: nil, numberOfPages: 0, isbn13: nil, isbn10: nil, publishDate: nil, oclcNumber: nil, revision: nil, cover: nil)
-    var userBook = UserBookDetails(editionKey: editionKey, addedDate: Date(), userRating: 2.5, status: .toDo, startDate: Date(), endDate: Date(), notes: "")
+    var userBook = UserBookDetails(editionKey: editionKey, addedDate: Date(), userRating: 2.5, isFavorite: false, status: .toDo, startDate: Date(), endDate: Date(), notes: "")
     
     Task {
         do {

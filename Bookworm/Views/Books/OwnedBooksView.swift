@@ -25,6 +25,10 @@ struct OwnedBooksView: View {
     @State private var scannedCode: String?
     @State private var showBookNotFoundAlert = false
     @State private var selectedLanguages = ["eng"]
+    
+    @State private var showFavoriteDeleteDialog = false
+    @State private var favoriteBookToDelete: CompleteBookDataViewModel?
+    @State private var favoriteOffsetsToDelete: IndexSet?
 
     @State private var isBookSearchShowing = false
 
@@ -41,7 +45,14 @@ struct OwnedBooksView: View {
                 NavigationLink(destination: BookDetailsView(book: book)) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(book.workTitle).font(.headline)
+                            HStack {
+                                Text(book.workTitle).font(.headline)
+                                
+                                if book.isFavorite {
+                                    Image(systemName: "heart.fill")
+                                        .foregroundStyle(.red)
+                                }
+                            }
                             
                             Text(book.authorName)
                         }
@@ -69,9 +80,9 @@ struct OwnedBooksView: View {
                     .tint(.inProgress)
                 }
             }
-            .onDelete(
-                perform: isSearching ? deleteSearchItems : deleteItems
-            )
+            .onDelete { offsets in
+                handleDelete(offsets: offsets)
+            }
             // Auto navigate to newly added books
             /*.navigationDestination(
                  isPresented: Binding(
@@ -84,6 +95,31 @@ struct OwnedBooksView: View {
                  }
                  }
                  */
+        }
+        .confirmationDialog(
+            "Delete Favorite Book?",
+            isPresented: $showFavoriteDeleteDialog,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let offsets = favoriteOffsetsToDelete {
+                    if isSearching {
+                        deleteSearchItems(offsets: offsets)
+                    } else {
+                        deleteItems(offsets: offsets)
+                    }
+                }
+                
+                favoriteBookToDelete = nil
+                favoriteOffsetsToDelete = nil
+            }
+            
+            Button("Cancel", role: .cancel) {
+                favoriteBookToDelete = nil
+                favoriteOffsetsToDelete = nil
+            }
+        } message: {
+            Text("This book is marked as favorite. Are you sure you want to delete it?")
         }
         .toolbar {
             ToolbarItem {
@@ -141,6 +177,27 @@ struct OwnedBooksView: View {
             isBookSearchShowing = true
         }
     }
+    
+    private func handleDelete(offsets: IndexSet) {
+        let booksArray = isSearching ? searchResults : ownedBooks
+        
+        guard let index = offsets.first else { return }
+        let book = booksArray[index]
+        
+        if book.isFavorite {
+            // Show confirmation popup
+            favoriteBookToDelete = book
+            favoriteOffsetsToDelete = offsets
+            showFavoriteDeleteDialog = true
+        } else {
+            // Delete immediately
+            if isSearching {
+                deleteSearchItems(offsets: offsets)
+            } else {
+                deleteItems(offsets: offsets)
+            }
+        }
+    }
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
@@ -158,13 +215,20 @@ struct OwnedBooksView: View {
         withAnimation {
             for index in offsets {
                 print("delete search item at: \(index)")
+                let itemToDelete: CompleteBookDataViewModel = searchResults[index]
                 searchResults.remove(at: index)
+                Task {
+                    try DatabaseRepository.deleteCompleteBook(itemToDelete.asRecord)
+                }
             }
         }
     }
     
     private func handleScan(result: Result<ScanResult, ScanError>) async {
         isShowingScanner = false
+        
+        print("ISBN----------------")
+        print(result)
 
         switch result {
         case .success(let result):

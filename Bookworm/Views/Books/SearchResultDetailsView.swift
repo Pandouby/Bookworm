@@ -60,7 +60,7 @@ struct SearchResultDetailsView: View {
                     }
                 }
                 
-                if(searchResult.work.description != "") {
+                if(searchResult.work.description?.text != "") {
                     ZStack {
                         Rectangle()
                             .fill(
@@ -77,7 +77,7 @@ struct SearchResultDetailsView: View {
                             )
                         
                         ScrollView {
-                            Text("\"\(searchResult.work.description ?? "")\"")
+                            Text("\"\(searchResult.work.description?.text ?? "")\"")
                                 .fixedSize(horizontal: false, vertical: true)
                                 .foregroundStyle(.white)
                         }
@@ -189,7 +189,7 @@ struct SearchResultDetailsView: View {
     let sampleWork = WorkResponse(
         workKey: "/works/OL11111W",
         workTitle: "Sample Book Title",
-        description: "This is a sample book description that explains what the book is about.",
+        description: .string("This is a sample book description that explains what the book is about."),
         editionKeys: ["/books/OL67890M"],
         authorKeys: ["/authors/OL12345A"],
         languages: [],

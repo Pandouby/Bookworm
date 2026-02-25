@@ -61,50 +61,6 @@ extension Work {
     }
 }
 
-struct WorkResponse: Codable {
-    let workKey: String
-    let workTitle: String
-    var description: String?
-    let editionKeys: [String]?
-    let authorKeys: [String]?
-    let languages: [String]?
-    let firstPublishYear: Int?
-    let subjects: [String]?
-    
-    enum CodingKeys: String, CodingKey {
-        case workKey = "key"
-        case workTitle = "title"
-        case description
-        case editionKeys = "edition_key"
-        case authorKeys = "author_key"
-        case languages = "language"
-        case firstPublishYear = "first_publish_year"
-        case subjects = "subject"
-    }
-}
-
-struct DetailWorkResponse: Codable {
-    let workKey: String
-    let workTitle: String
-    let description: String?
-    let authors: [AuthorWorkResponse]?
-    let subjects: [String]?
-    let languages: [String]?
-    let firstPublishYear: Int?
-    
-    enum CodingKeys: String, CodingKey {
-        case workKey = "key"
-        case workTitle = "title"
-        case description
-        case authors
-        case subjects
-        case languages = "language"
-        case firstPublishYear = "first_publish_year"
-    }
-}
-
-
-
 extension Work {
     /// Fetch all works
     static func allWorks() -> QueryInterfaceRequest<Work> {
@@ -127,6 +83,48 @@ extension Work {
     }
 }
 
+struct WorkResponse: Codable {
+    let workKey: String
+    let workTitle: String
+    var description: DescriptionValue?
+    let editionKeys: [String]?
+    let authorKeys: [String]?
+    let languages: [String]?
+    let firstPublishYear: Int?
+    let subjects: [String]?
+    
+    enum CodingKeys: String, CodingKey {
+        case workKey = "key"
+        case workTitle = "title"
+        case description
+        case editionKeys = "edition_key"
+        case authorKeys = "author_key"
+        case languages = "language"
+        case firstPublishYear = "first_publish_year"
+        case subjects = "subject"
+    }
+}
+
+struct DetailWorkResponse: Codable {
+    let workKey: String
+    let workTitle: String
+    let description: DescriptionValue?
+    let authors: [AuthorWorkResponse]?
+    let subjects: [String]?
+    let languages: [String]?
+    let firstPublishYear: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case workKey = "key"
+        case workTitle = "title"
+        case description
+        case authors
+        case subjects
+        case languages = "language"
+        case firstPublishYear = "first_publish_year"
+    }
+}
+
 struct AllWorksQuery: ValueObservationQueryable {
     static var defaultValue: [Work] { [] }
     
@@ -138,3 +136,47 @@ struct AllWorksQuery: ValueObservationQueryable {
 struct WorkKeyElement: Codable {
         let key: String
 }
+
+enum DescriptionValue: Codable {
+    case string(String)
+    case object(String)
+    
+    struct Object: Codable {
+        let value: String
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let str = try? container.decode(String.self) {
+            self = .string(str)
+            return
+        }
+        if let obj = try? container.decode(Object.self) {
+            self = .object(obj.value)
+            return
+        }
+        throw DecodingError.typeMismatch(
+            DescriptionValue.self,
+            .init(codingPath: decoder.codingPath,
+                  debugDescription: "Expected String or { value: String }")
+        )
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let s):
+            try container.encode(s)
+        case .object(let s):
+            try container.encode(Object(value: s))
+        }
+    }
+    
+    var text: String {
+        switch self {
+        case .string(let s): return s
+        case .object(let s): return s
+        }
+    }
+}
+

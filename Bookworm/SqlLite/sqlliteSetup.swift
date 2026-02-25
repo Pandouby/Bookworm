@@ -97,6 +97,8 @@ struct AppDatabase {
                     .references("Editions", onDelete: .cascade)
                 t.column("added_date", .text)
                 t.column("user_rating", .real)
+                t.column("favorite", .boolean)
+                    .defaults(to: false)
                 t.column("status", .text)
                 t.column("start_date", .text)
                 t.column("end_date", .text)
@@ -212,14 +214,14 @@ struct AppDatabase {
                 edition: Edition(editionKey: "E1", workKey: "W1", editionTitle: "The Hobbit", numberOfPages: 310, isbn13: "978-0-395-07122-1"),
                 authors: [Author(authorKey: "A1", authorName: "J.R.R. Tolkien")],
                 genres: [.fiction, .juvenile],
-                userDetails: UserBookDetails(editionKey: "E1", addedDate: Date(), userRating: 5, status: .inProgress, startDate: Date().addingTimeInterval(-86400 * 10), endDate: Date(), notes: "A classic!")
+                userDetails: UserBookDetails(editionKey: "E1", addedDate: Date(), userRating: 5, isFavorite: false, status: .inProgress, startDate: Date().addingTimeInterval(-86400 * 10), endDate: Date(), notes: "A classic!")
             ),
             CompleteBookData(
                 work: Work(workKey: "W2", workTitle: "Dune", subtitle: nil, workDescription: "A science fiction novel.", firstPublishYear: 1965),
                 edition: Edition(editionKey: "E2", workKey: "W2", editionTitle: "Dune", numberOfPages: 412, isbn13: "978-0-441-01359-3"),
                 authors: [Author(authorKey: "A2", authorName: "Frank Herbert")],
                 genres: [.fiction, .science],
-                userDetails: UserBookDetails(editionKey: "E2", addedDate: Date(), userRating: 4, status: .toDo, startDate: Date(), endDate: Date(), notes: "Must read soon.")
+                userDetails: UserBookDetails(editionKey: "E2", addedDate: Date(), userRating: 4, isFavorite: false, status: .toDo, startDate: Date(), endDate: Date(), notes: "Must read soon.")
             )
         ]
         

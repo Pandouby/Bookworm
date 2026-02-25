@@ -17,6 +17,7 @@ final class CompleteBookDataViewModel: Identifiable  {
     var genre: Genre
     var pageCount: Int
     var userRating: Double
+    var isFavorite: Bool
     var status: Status
     var addedDate: Date
     var startDate: Date
@@ -31,11 +32,16 @@ final class CompleteBookDataViewModel: Identifiable  {
         self.originalUserBookDetails = data.userDetails
         
         // Copy fields into observable state
+        // Work
         self.workTitle = data.work.workTitle
-        self.authorName = data.authors.first?.authorName ?? "Unknown Author"
         self.genre = data.genres.first ?? .nonClassifiable
+        // Author
+        self.authorName = data.authors.first?.authorName ?? "Unknown Author"
+        // Edition
         self.pageCount = data.edition.numberOfPages ?? 0
+        // UserBookDetails
         self.userRating = data.userDetails.userRating
+        self.isFavorite = data.userDetails.isFavorite
         self.status = data.userDetails.status
         self.addedDate = data.userDetails.addedDate
         self.startDate = data.userDetails.startDate
@@ -48,6 +54,7 @@ final class CompleteBookDataViewModel: Identifiable  {
         originalUserBookDetails.copy(
             addedDate: addedDate,
             userRating: userRating,
+            isFavorite: isFavorite,
             status: status,
             startDate: startDate,
             endDate: endDate,
@@ -65,11 +72,17 @@ final class CompleteBookDataViewModel: Identifiable  {
         [genre]
     }
     
+    var editionEdited: Edition {
+        originalEdition.copy(
+            numberOfPages: pageCount
+        )
+    }
+    
     /// Convert everything back into a complete record structure
     var asRecord: CompleteBookData {
         CompleteBookData(
             work: workEdited,
-            edition: originalEdition,
+            edition: editionEdited,
             authors: originalAuthors,
             genres: genresEdited,
             userDetails: userDetailsEdited
@@ -85,6 +98,7 @@ extension CompleteBookDataViewModel: Comparable, Equatable {
         lhs.genre == rhs.genre &&
         lhs.pageCount == rhs.pageCount &&
         lhs.userRating == rhs.userRating &&
+        lhs.isFavorite == rhs.isFavorite &&
         lhs.status == rhs.status &&
         lhs.addedDate == rhs.addedDate &&
         lhs.startDate == rhs.startDate &&

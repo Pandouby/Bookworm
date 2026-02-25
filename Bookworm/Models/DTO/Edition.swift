@@ -57,24 +57,6 @@ extension Edition {
     static let publishers = hasMany(Publisher.self, through: editionPublishers, using: EditionPublisher.publisher)
 }
 
-struct EditionListResponse: Codable {
-    let entries: [EditionResponse]
-}
-
-struct EditionResponse: Codable {
-    var title: String
-    var key: String
-    var works: [WorkKeyElement]?
-    var number_of_pages: Int?
-    var isbn_13: [String]?
-    var isbn_10: [String]?
-    var publish_date: String?
-    var languages: [LanguageResponse]?
-    var covers: [Int]?
-    var coverLink: String?
-    var publishers: [String]?
-}
-
 extension Edition {
     /// Fetch all editions
     static func allEditions() -> QueryInterfaceRequest<Edition> {
@@ -96,4 +78,56 @@ extension Edition {
             .including(optional: Edition.publishers)
             .including(optional: Edition.userBookDetail)
     }
+}
+
+extension Edition {
+    func copy(
+        editionKey: String? = nil,
+        workKey: String? = nil,
+        physicalFormat: String? = nil,
+        editionTitle: String? = nil,
+        editionDescription: String? = nil,
+        numberOfPages: Int? = nil,
+        isbn13: String? = nil,
+        isbn10: String? = nil,
+        publishDate: String? = nil,
+        oclcNumber: String? = nil,
+        revision: Int? = nil,
+        cover: String? = nil
+    ) -> Edition {
+        Edition(
+            editionKey: editionKey ?? self.editionKey,
+            workKey: workKey ?? self.workKey,
+            physicalFormat: physicalFormat ?? self.physicalFormat,
+            editionTitle: editionTitle ?? self.editionTitle,
+            editionDescription: editionDescription ?? self.editionDescription,
+            numberOfPages: numberOfPages ?? self.numberOfPages,
+            isbn13: isbn13 ?? self.isbn13,
+            isbn10: isbn10 ?? self.isbn10,
+            publishDate: publishDate ?? self.publishDate,
+            oclcNumber: oclcNumber ?? self.oclcNumber,
+            revision: revision ?? self.revision,
+            cover: cover ?? self.cover
+        )
+    }
+}
+
+
+
+struct EditionListResponse: Codable {
+    let entries: [EditionResponse]
+}
+
+struct EditionResponse: Codable {
+    var title: String
+    var key: String
+    var works: [WorkKeyElement]?
+    var number_of_pages: Int?
+    var isbn_13: [String]?
+    var isbn_10: [String]?
+    var publish_date: String?
+    var languages: [LanguageResponse]?
+    var covers: [Int]?
+    var coverLink: String?
+    var publishers: [String]?
 }

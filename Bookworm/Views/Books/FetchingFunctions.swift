@@ -153,7 +153,7 @@ func fetchCompleteBookDataByEdition(for edition: EditionResponse, languages: [St
         print("Author-Keys-----------")
         print(authorKeys)
         
-        let fullWork = WorkResponse(workKey: workDetails.workKey, workTitle: workDetails.workTitle, description: workDetails.description, editionKeys: [edition.key], authorKeys: authorKeys, languages: workDetails.languages, firstPublishYear: workDetails.firstPublishYear, subjects: workDetails.subjects)
+        let fullWork = WorkResponse(workKey: workDetails.workKey, workTitle: edition.title, description: workDetails.description, editionKeys: [edition.key], authorKeys: authorKeys, languages: edition.languages?.map { $0.key } ?? [], firstPublishYear: workDetails.firstPublishYear, subjects: workDetails.subjects)
         
         //print("-----------------------------------")
         //print(fullWork, bestEdition!, authorResponse)

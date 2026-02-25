@@ -7,6 +7,7 @@ struct UserBookDetails: Codable, FetchableRecord, PersistableRecord, TableRecord
     var editionKey: String
     var addedDate: Date
     var userRating: Double
+    var isFavorite: Bool
     var status: Status
     var startDate: Date
     var endDate: Date
@@ -16,6 +17,7 @@ struct UserBookDetails: Codable, FetchableRecord, PersistableRecord, TableRecord
         case editionKey = "edition_key"
         case addedDate = "added_date"
         case userRating = "user_rating"
+        case isFavorite = "favorite"
         case status = "status"
         case startDate = "start_date"
         case endDate = "end_date"
@@ -26,6 +28,7 @@ struct UserBookDetails: Codable, FetchableRecord, PersistableRecord, TableRecord
         case editionKey = "edition_key"
         case addedDate = "added_date"
         case userRating = "user_rating"
+        case isFavorite = "favorite"
         case status = "status"
         case startDate = "start_date"
         case endDate = "end_date"
@@ -43,6 +46,7 @@ extension UserBookDetails {
         editionKey: String? = nil,
         addedDate: Date? = nil,
         userRating: Double? = nil,
+        isFavorite: Bool? = nil,
         status: Status? = nil,
         startDate: Date? = nil,
         endDate: Date? = nil,
@@ -52,6 +56,7 @@ extension UserBookDetails {
             editionKey: editionKey ?? self.editionKey,
             addedDate: addedDate ?? self.addedDate,
             userRating: userRating ?? self.userRating,
+            isFavorite: isFavorite ?? self.isFavorite,
             status: status ?? self.status,
             startDate: startDate ?? self.startDate,
             endDate: endDate ?? self.endDate,

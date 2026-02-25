@@ -66,7 +66,6 @@ struct BookDetailsView: View {
                 }
 
                 Section {
-                    
                     Picker("Status", selection: $book.status) {
                         ForEach(Status.allCases) { status in
                             HStack {
@@ -119,6 +118,21 @@ struct BookDetailsView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    withAnimation(.smooth) {
+                        book.isFavorite.toggle()
+                        saveData(book: book)
+                    }
+                } label: {
+                    Image(systemName: book.isFavorite ? "heart.fill" : "heart")
+                        .foregroundStyle(book.isFavorite ? .red : .primary)
+                        .symbolRenderingMode(.hierarchical)
+                        .contentTransition(.symbolEffect(.replace))
+                }
+            }
         }
     }
 }

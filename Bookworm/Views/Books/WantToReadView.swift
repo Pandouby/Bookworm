@@ -98,8 +98,13 @@ struct WantToReadView: View {
     private func deleteSearchItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                //modelContext.delete(searchResults[index])
+                print("delete search item at: \(index)")
+                let itemToDelete: CompleteBookDataViewModel = searchResults[index]
                 searchResults.remove(at: index)
+                Task {
+                    try DatabaseRepository.deleteCompleteBook(itemToDelete.asRecord)
+                }
+                
             }
         }
     }

@@ -25,9 +25,9 @@ struct ContentView: View {
             Text("Settings tab")
                 .tag(4)
         }
-        .overlay(alignment: .bottom) {
+        /*.overlay(alignment: .bottom) {
             CustomTabView(tabIndex: $tabIndex)
-        }
+        }*/
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }

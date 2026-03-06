@@ -5,42 +5,29 @@
 //  Created by Silvan Dubach on 04.11.2024.
 //
 
-import SwiftData
 import SwiftUI
+import GRDB
+import GRDBQuery
 
 struct DiscoveryView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query() private var books: [Book]
+    @Query(AllCompleteBooksQuery(statuses: [.done])) private var books: [CompleteBookData]
     @AppStorage("isDiscoveryActive") var isDiscoveryActive: Bool = false
     
-    init() {
-        let filter = #Predicate<Book> { book in
-            book.statusOrder == 4
-        }
-        
-        let sort: [SortDescriptor<Book>] = [
-            SortDescriptor(\Book.rating)
-        ]
-        
-        _books = Query(filter: filter, sort: sort)
-    }
-    
-    
     var body: some View {
-        if(isDiscoveryActive) {
+        if isDiscoveryActive {
             BookRecommendationView(readBooks: books)
         } else {
-            // Fix descoverySetupView
-            //DiscoverySetupView(books: books)
+            // Text("Discovery Setup")
+            DiscoverySetupView(books: books)
         }
     }
 }
 
 #Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
     
     return DiscoveryView()
-        .modelContainer(preview.container)
+        .databaseContext(.readWrite { dbQueue })
 }
 

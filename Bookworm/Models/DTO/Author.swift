@@ -1,6 +1,6 @@
 import GRDB
 
-struct Author: Codable, FetchableRecord, PersistableRecord, TableRecord {
+struct Author: Codable, FetchableRecord, PersistableRecord, TableRecord, Equatable {
     static let databaseTableName = "Authors"
     
     var authorKey: String

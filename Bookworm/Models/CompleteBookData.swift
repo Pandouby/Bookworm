@@ -7,7 +7,7 @@
 import GRDB
 import GRDBQuery
 
-struct CompleteBookData: Codable, FetchableRecord, PersistableRecord, Identifiable{
+struct CompleteBookData: Codable, FetchableRecord, PersistableRecord, Identifiable, Equatable {
     let work: Work
     let edition: Edition
     let authors: [Author]
@@ -15,6 +15,13 @@ struct CompleteBookData: Codable, FetchableRecord, PersistableRecord, Identifiab
     let userDetails: UserBookDetails
     
     var id: String { work.workKey }
+    
+    static func == (lhs: CompleteBookData, rhs: CompleteBookData) -> Bool {
+        return lhs.work.workKey == rhs.work.workKey &&
+               lhs.userDetails.status == rhs.userDetails.status &&
+               lhs.userDetails.userRating == rhs.userDetails.userRating &&
+               lhs.userDetails.isFavorite == rhs.userDetails.isFavorite
+    }
 }
 
 struct AllCompleteBooksQuery: ValueObservationQueryable {

@@ -1,7 +1,7 @@
 import GRDB
 import GRDBQuery
 
-struct Edition: Codable, FetchableRecord, PersistableRecord, TableRecord {
+struct Edition: Codable, FetchableRecord, PersistableRecord, TableRecord, Equatable {
     static let databaseTableName = "Editions"
     
     var editionKey: String

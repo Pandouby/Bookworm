@@ -1,7 +1,7 @@
 import GRDB
 import Foundation
 
-struct UserBookDetails: Codable, FetchableRecord, PersistableRecord, TableRecord {
+struct UserBookDetails: Codable, FetchableRecord, PersistableRecord, TableRecord, Equatable {
     static let databaseTableName = "UserBookDetails"
     
     var editionKey: String

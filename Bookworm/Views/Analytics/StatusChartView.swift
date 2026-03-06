@@ -13,22 +13,32 @@ import GRDBQuery
 
 struct StatusChartView: View {
     @Query(AllCompleteBooksQuery(statuses: [.toDo, .inProgress, .onPause, .done])) var completeBooks: [CompleteBookData]
+    
     @State private var chartEntries: [StatusChartEntry] = []
-
     @State private var selectedAngle: Int?
     @State private var selectedStatus: StatusChartEntry?
 
     private var titleView: some View {
-        VStack {
-            Text(selectedStatus?.status.rawValue ?? "Status")
-                .font(.title)
+        VStack(spacing: 2) {
+            Text(selectedStatus?.status.rawValue ?? "Total")
+                .font(.system(.subheadline, design: .rounded, weight: .medium))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.5)
+            
             Text(
                 (selectedStatus?.count.formatted() ?? completeBooks.count.formatted())
-                    + " books"
             )
-            .font(.callout)
+            .font(.system(.title2, design: .rounded, weight: .bold))
+            .foregroundColor(.primary)
+            
+            Text("books")
+                .font(.system(.caption2, design: .rounded))
+                .foregroundColor(.secondary)
         }
-        .frame(maxWidth: 150, maxHeight: 150)
+        .frame(width: 100, height: 100)
+        .contentShape(Rectangle())
     }
 
     private func colorForStatus(_ status: Status) -> Color {
@@ -36,120 +46,137 @@ struct StatusChartView: View {
     }
 
     var body: some View {
-        VStack(alignment: .center) {
-            Chart(chartEntries) { entry in
-                let isSelected = entry.status == selectedStatus?.status
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Books by Status")
+                .font(.headline)
+                .padding(.horizontal)
+                .padding(.top)
+            
+            ZStack {
+                Chart(chartEntries) { entry in
+                    let isSelected = entry.status == selectedStatus?.status
 
-                SectorMark(
-                    angle: .value("Count", entry.isAnimated ? entry.count : 0),
-                    innerRadius: .ratio(0.618),
-                    outerRadius: .ratio(isSelected ? 1 : 0.9),
-                    angularInset: isSelected ? 3 : 2
-                )
-                .cornerRadius(5)
-                .foregroundStyle(colorForStatus(entry.status))
-                .opacity(isSelected ? 1 : 0.8)
-            }
-            .scaledToFit()
-            .chartAngleSelection(value: $selectedAngle)
-            .chartBackground { chartProxy in
-                GeometryReader { geometry in
-                    if let anchor = chartProxy.plotFrame {
-                        let frame = geometry[anchor]
-                        titleView
-                            .position(x: frame.midX, y: frame.midY)
+                    SectorMark(
+                        angle: .value("Count", entry.isAnimated ? entry.count : 0),
+                        innerRadius: .ratio(0.65),
+                        outerRadius: .ratio(isSelected ? 1.0 : 0.92),
+                        angularInset: 2.0
+                    )
+                    .cornerRadius(6)
+                    .foregroundStyle(colorForStatus(entry.status).gradient)
+                    .opacity(isSelected ? 1 : 0.85)
+                }
+                .frame(height: 260)
+                .chartAngleSelection(value: $selectedAngle)
+                .chartBackground { chartProxy in
+                    GeometryReader { geometry in
+                        if let anchor = chartProxy.plotFrame {
+                            let frame = geometry[anchor]
+                            titleView
+                                .position(x: frame.midX, y: frame.midY)
+                        }
                     }
                 }
-            }
-            .onChange(
-                of: selectedAngle,
-                { oldValue, newValue in
+                .onChange(of: selectedAngle) { _, newValue in
                     if let newValue {
-                        withAnimation {
+                        withAnimation(.interactiveSpring()) {
                             getSelectedStatus(value: newValue)
                         }
                     }
                 }
-            )
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+            }
+            .padding(.vertical, 10)
+            
+            Divider()
+                .padding(.horizontal)
+            
+            // Refined Legend
             LazyVGrid(
                 columns: [
-                    GridItem(.adaptive(minimum: 100, maximum: .infinity))
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
                 ],
-                alignment: .leading
+                alignment: .leading,
+                spacing: 12
             ) {
-
                 ForEach(chartEntries) { entry in
-                    HStack(alignment: .top) {
-                        Image(systemName: "circle.fill")
-                            .foregroundStyle(colorForStatus(entry.status))
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(colorForStatus(entry.status).gradient)
+                            .frame(width: 10, height: 10)
+                        
                         Text(entry.status.rawValue)
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        Text("\(entry.count)")
+                            .font(.system(.caption, design: .rounded, weight: .bold))
+                            .foregroundColor(.secondary)
                     }
-                    .frame(maxHeight: 15)
+                    .padding(.horizontal, 8)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.interactiveSpring()) {
+                            if selectedStatus?.id == entry.id {
+                                selectedStatus = nil
+                            } else {
+                                selectedStatus = entry
+                            }
+                        }
+                    }
                 }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.bottom)
+            .padding([.horizontal, .bottom])
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+        .padding()
         .onAppear {
             calculateChartEntries()
         }
-        .onChange(
-            of: chartEntries,
-            {
-                animateChart()
-            }
-        )
+        .onChange(of: completeBooks) { _, _ in
+            calculateChartEntries()
+        }
         .contentShape(Rectangle())
         .onTapGesture {
-            selectedStatus = nil
+            withAnimation { selectedStatus = nil }
         }
     }
 
     private func calculateChartEntries() {
         var statusDict: [Status: Int] = [:]
-
         for book in completeBooks {
             statusDict[book.userDetails.status, default: 0] += 1
         }
 
-        self.chartEntries =
-            statusDict
-            .map {
-                StatusChartEntry(
-                    status: $0.key, count: $0.value, isAnimated: false)
-            }
-            .sorted(by: { $0.status.rawValue > $1.status.rawValue })
+        let newEntries = statusDict.map {
+            StatusChartEntry(status: $0.key, count: $0.value, isAnimated: false)
+        }
+        .sorted(by: { $0.count > $1.count })
 
-        selectedStatus = nil
+        self.chartEntries = newEntries
         animateChart()
     }
 
     private func getSelectedStatus(value: Int) {
         var cumulativeTotal = 0
-        _ = chartEntries.first { entry in
+        selectedStatus = chartEntries.first { entry in
             cumulativeTotal += entry.count
-            if value <= cumulativeTotal {
-                selectedStatus = entry
-                return true
-            }
-            return false
+            return value <= cumulativeTotal
         }
     }
 
     private func animateChart() {
-        $chartEntries.enumerated().forEach { index, entry in
+        for index in chartEntries.indices {
             let delay = Double(index) * 0.05
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 withAnimation(.smooth) {
-                    entry.wrappedValue.isAnimated = true
+                    chartEntries[index].isAnimated = true
                 }
             }
         }
-
     }
 }
 

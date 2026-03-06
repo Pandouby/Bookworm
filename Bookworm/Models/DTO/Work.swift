@@ -1,7 +1,7 @@
 import GRDB
 import GRDBQuery
 
-struct Work: Codable, FetchableRecord, PersistableRecord, TableRecord, Identifiable {
+struct Work: Codable, FetchableRecord, PersistableRecord, TableRecord, Identifiable, Equatable {
     static let databaseTableName = "Works"
     
     var workKey: String

@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct AnalyticsView: View {
-    @State private var selectedView: ChartType = .genreChart
+    @State private var selectedView: ChartType = .pagesChart
     
     enum ChartType: String, CaseIterable, Identifiable {
+        case pagesChart = "Pages"
         case genreChart = "Genres"
         case statusChart = "Statuses"
         
@@ -18,25 +19,28 @@ struct AnalyticsView: View {
     }
     
     var body: some View {
-        VStack {
-            List {
-                Picker("Select Chart", selection: $selectedView) {
-                    ForEach(ChartType.allCases) { chart in
-                        Text(chart.rawValue).tag(chart)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Picker("Select Chart", selection: $selectedView) {
+                        ForEach(ChartType.allCases) { chart in
+                            Text(chart.rawValue).tag(chart)
+                        }
                     }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .listRowBackground(Color.clear)
-                
-                Section {
-                    if selectedView == .genreChart {
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
+                    
+                    if selectedView == .pagesChart {
+                        PagesAnalytics()
+                    } else if selectedView == .genreChart {
                         GenreChartView()
                     } else {
                         StatusChartView()
                     }
                 }
+                .padding(.vertical)
             }
-            .scrollDisabled(true)
+            .navigationTitle("Analytics")
         }
     }
 }

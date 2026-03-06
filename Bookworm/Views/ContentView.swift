@@ -31,7 +31,7 @@ struct ContentView: View {
                 }
                 .tag(3)
             
-            Text("Settings tab")
+            SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "slider.horizontal.2.square")
                 }

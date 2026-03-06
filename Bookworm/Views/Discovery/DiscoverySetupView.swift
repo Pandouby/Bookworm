@@ -8,6 +8,15 @@ struct DiscoverySetupView: View {
     @State private var selectedGenre1: String = Genre.nonClassifiable.rawValue
     @State private var selectedGenre2: String = Genre.nonClassifiable.rawValue
     @State private var selectedGenre3: String = Genre.nonClassifiable.rawValue
+    @State private var selectedLanguage: String = "eng"
+
+    let languages = [
+        ("English", "eng"),
+        ("German", "ger"),
+        ("French", "fre"),
+        ("Italian", "ita"),
+        ("Spanish", "spa")
+    ]
 
     private var enoughReadBooks: Bool
 
@@ -40,7 +49,14 @@ struct DiscoverySetupView: View {
                         }
                     }
                     .pickerStyle(.navigationLink)
-                 
+                }
+                
+                Section(header: Text("Language")) {
+                    Picker("Preferred Language", selection: $selectedLanguage) {
+                        ForEach(languages, id: \.1) { name, code in
+                            Text(name).tag(code)
+                        }
+                    }
                 }
 
                 if !enoughReadBooks {
@@ -69,16 +85,19 @@ struct DiscoverySetupView: View {
             }
             .navigationTitle("Discovery Setup")
             .onAppear {
-                loadFavoriteGenres()
+                loadPreferences()
             }
         }
     }
 
-    private func loadFavoriteGenres() {
+    private func loadPreferences() {
         if let genres = UserDefaults.standard.array(forKey: "FavoriteGenres") as? [String] {
             if genres.count >= 1 { selectedGenre1 = genres[0] }
             if genres.count >= 2 { selectedGenre2 = genres[1] }
             if genres.count >= 3 { selectedGenre3 = genres[2] }
+        }
+        if let language = UserDefaults.standard.string(forKey: "PreferredLanguage") {
+            selectedLanguage = language
         }
     }
 
@@ -89,6 +108,7 @@ struct DiscoverySetupView: View {
         if !favoriteGenres.contains(Genre.nonClassifiable.rawValue) {
             isDiscoveryActive = true
             UserDefaults.standard.set(favoriteGenres, forKey: "FavoriteGenres")
+            UserDefaults.standard.set(selectedLanguage, forKey: "PreferredLanguage")
             print("Submited")
         } else {
             // Display an alert that are genres missing

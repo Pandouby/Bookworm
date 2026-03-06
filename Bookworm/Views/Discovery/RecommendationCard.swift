@@ -19,7 +19,7 @@ struct RecommendationCard: View {
         ZStack(alignment: .bottom) {
             // Card Background
             RoundedRectangle(cornerRadius: 30)
-                .fill(Color(.systemBackground))
+                .fill(Color(.secondarySystemBackground))
                 .shadow(color: Color.black.opacity(0.12), radius: 20, x: 0, y: 10)
             
             // Content Container with Fixed Top Padding
@@ -120,9 +120,9 @@ struct RecommendationCard: View {
             ZStack(alignment: .bottom) {
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color(.systemBackground).opacity(0),
-                        Color(.systemBackground).opacity(0.9),
-                        Color(.systemBackground)
+                        Color(.secondarySystemBackground).opacity(0),
+                        Color(.secondarySystemBackground).opacity(0.9),
+                        Color(.secondarySystemBackground)
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
@@ -143,7 +143,7 @@ struct RecommendationCard: View {
                             .frame(width: 64, height: 64)
                             .background(
                                 Circle()
-                                    .fill(Color(.systemBackground))
+                                    .fill(Color(.secondarySystemBackground))
                                     .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                             )
                     }
@@ -160,7 +160,7 @@ struct RecommendationCard: View {
                             .frame(width: 64, height: 64)
                             .background(
                                 Circle()
-                                    .fill(Color(.systemBackground))
+                                    .fill(Color(.secondarySystemBackground))
                                     .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                             )
                     }
@@ -168,6 +168,7 @@ struct RecommendationCard: View {
                 .padding(.bottom, 32)
             }
             .allowsHitTesting(true)
+            .clipShape(RoundedRectangle(cornerRadius: 30))
             
             // Visual Swipe Indicators (STAMP style) - Back over the image
             ZStack {

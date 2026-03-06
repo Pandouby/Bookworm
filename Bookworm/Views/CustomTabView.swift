@@ -5,6 +5,7 @@
 //  Created by Silvan Dubach on 18.10.2024.
 //
 
+/*
 import SwiftUI
 
 struct CustomTabView: View {
@@ -56,5 +57,4 @@ struct CustomTabView: View {
 #Preview {
     CustomTabView(tabIndex: .constant(1))
 }
-
-
+*/

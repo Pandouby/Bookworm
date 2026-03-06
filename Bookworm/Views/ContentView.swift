@@ -14,20 +14,29 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $tabIndex) {
             BooksView()
+                .tabItem {
+                    Label("Owned books", systemImage: "book.closed")
+                }
                 .tag(1)
             
             DiscoveryView()
+                .tabItem {
+                    Label("Discovery", systemImage: "magnifyingglass")
+                }
                 .tag(2)
             
             AnalyticsView()
+                .tabItem {
+                    Label("Analytics", systemImage: "chart.bar.xaxis")
+                }
                 .tag(3)
             
             Text("Settings tab")
+                .tabItem {
+                    Label("Settings", systemImage: "slider.horizontal.2.square")
+                }
                 .tag(4)
         }
-        /*.overlay(alignment: .bottom) {
-            CustomTabView(tabIndex: $tabIndex)
-        }*/
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }

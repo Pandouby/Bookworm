@@ -15,7 +15,26 @@ struct AppDatabase {
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].path)
         
         dbQueue = try! DatabaseQueue(path: path)
+        
+        // Ensure the repository is using the correct queue before any migrations or checks
+        DatabaseRepository.dbQueue = dbQueue
+        
         try! migrator.migrate(dbQueue)
+        
+        #if DEBUG
+        // Populate with mock data if the database is empty to facilitate testing in the simulator.
+        try? populateIfEmpty()
+        #endif
+    }
+    
+    private func populateIfEmpty() throws {
+        // Use a write transaction to both check and populate
+        try dbQueue.write { db in
+            let count = try UserBookDetails.fetchCount(db)
+            if count == 0 {
+                try AppDatabase.createPreviewData(in: db)
+            }
+        }
     }
     
     var migrator: DatabaseMigrator {
@@ -201,32 +220,90 @@ struct AppDatabase {
         try! appDatabase.migrator.migrate(dbQueue)
         
         // Populate with sample data
-        try! createPreviewData(dbQueue)
+        try! dbQueue.write { db in
+            try createPreviewData(in: db)
+        }
         
         return dbQueue
     }
     
-    /// Populates the database with sample data for previews.
-    private static func createPreviewData(_ dbQueue: DatabaseQueue) throws {
+    /// Populates the database with sample data.
+    private static func createPreviewData(in db: Database) throws {
         let sampleBooks = [
             CompleteBookData(
                 work: Work(workKey: "W1", workTitle: "The Hobbit", subtitle: nil, workDescription: "A fantasy novel.", firstPublishYear: 1937),
                 edition: Edition(editionKey: "E1", workKey: "W1", editionTitle: "The Hobbit", numberOfPages: 310, isbn13: "978-0-395-07122-1"),
                 authors: [Author(authorKey: "A1", authorName: "J.R.R. Tolkien")],
                 genres: [.fiction, .juvenile],
-                userDetails: UserBookDetails(editionKey: "E1", addedDate: Date(), userRating: 5, isFavorite: false, status: .inProgress, startDate: Date().addingTimeInterval(-86400 * 10), endDate: Date(), notes: "A classic!")
+                userDetails: UserBookDetails(editionKey: "E1", addedDate: Date().addingTimeInterval(-86400 * 30), userRating: 5, isFavorite: true, status: .inProgress, startDate: Date().addingTimeInterval(-86400 * 10), endDate: Date(), notes: "A classic!")
             ),
             CompleteBookData(
                 work: Work(workKey: "W2", workTitle: "Dune", subtitle: nil, workDescription: "A science fiction novel.", firstPublishYear: 1965),
                 edition: Edition(editionKey: "E2", workKey: "W2", editionTitle: "Dune", numberOfPages: 412, isbn13: "978-0-441-01359-3"),
                 authors: [Author(authorKey: "A2", authorName: "Frank Herbert")],
                 genres: [.fiction, .science],
-                userDetails: UserBookDetails(editionKey: "E2", addedDate: Date(), userRating: 4, isFavorite: false, status: .toDo, startDate: Date(), endDate: Date(), notes: "Must read soon.")
+                userDetails: UserBookDetails(editionKey: "E2", addedDate: Date().addingTimeInterval(-86400 * 20), userRating: 4, isFavorite: false, status: .toDo, startDate: Date(), endDate: Date(), notes: "Must read soon.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W3", workTitle: "The Great Gatsby", subtitle: nil, workDescription: "A classic American novel.", firstPublishYear: 1925),
+                edition: Edition(editionKey: "E3", workKey: "W3", editionTitle: "The Great Gatsby", numberOfPages: 180, isbn13: "978-0-7432-7356-5"),
+                authors: [Author(authorKey: "A3", authorName: "F. Scott Fitzgerald")],
+                genres: [.fiction],
+                userDetails: UserBookDetails(editionKey: "E3", addedDate: Date().addingTimeInterval(-86400 * 60), userRating: 4.5, isFavorite: true, status: .done, startDate: Date().addingTimeInterval(-86400 * 50), endDate: Date().addingTimeInterval(-86400 * 45), notes: "Great read.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W4", workTitle: "The Shining", subtitle: nil, workDescription: "A horror novel.", firstPublishYear: 1977),
+                edition: Edition(editionKey: "E4", workKey: "W4", editionTitle: "The Shining", numberOfPages: 447, isbn13: "978-0-307-74365-7"),
+                authors: [Author(authorKey: "A4", authorName: "Stephen King")],
+                genres: [.fiction],
+                userDetails: UserBookDetails(editionKey: "E4", addedDate: Date().addingTimeInterval(-86400 * 5), userRating: 3.5, isFavorite: false, status: .wantToRead, startDate: Date(), endDate: Date(), notes: "Plan to read.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W5", workTitle: "1984", subtitle: nil, workDescription: "A dystopian social science fiction novel.", firstPublishYear: 1949),
+                edition: Edition(editionKey: "E5", workKey: "W5", editionTitle: "1984", numberOfPages: 328, isbn13: "978-0-452-28423-4"),
+                authors: [Author(authorKey: "A5", authorName: "George Orwell")],
+                genres: [.fiction, .politicalScience],
+                userDetails: UserBookDetails(editionKey: "E5", addedDate: Date().addingTimeInterval(-86400 * 10), userRating: 5, isFavorite: true, status: .done, startDate: Date().addingTimeInterval(-86400 * 8), endDate: Date().addingTimeInterval(-86400 * 2), notes: "Powerful book.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W6", workTitle: "To Kill a Mockingbird", subtitle: nil, workDescription: "A novel about racial injustice.", firstPublishYear: 1960),
+                edition: Edition(editionKey: "E6", workKey: "W6", editionTitle: "To Kill a Mockingbird", numberOfPages: 281, isbn13: "978-0-06-112008-4"),
+                authors: [Author(authorKey: "A6", authorName: "Harper Lee")],
+                genres: [.fiction, .law, .socialScience],
+                userDetails: UserBookDetails(editionKey: "E6", addedDate: Date().addingTimeInterval(-86400 * 100), userRating: 5, isFavorite: true, status: .done, startDate: Date().addingTimeInterval(-86400 * 95), endDate: Date().addingTimeInterval(-86400 * 90), notes: "Absolute masterpiece.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W7", workTitle: "Brave New World", subtitle: nil, workDescription: "A dystopian novel.", firstPublishYear: 1932),
+                edition: Edition(editionKey: "E7", workKey: "W7", editionTitle: "Brave New World", numberOfPages: 268, isbn13: "978-0-06-085052-4"),
+                authors: [Author(authorKey: "A7", authorName: "Aldous Huxley")],
+                genres: [.fiction, .science, .politicalScience, .socialScience],
+                userDetails: UserBookDetails(editionKey: "E7", addedDate: Date().addingTimeInterval(-86400 * 15), userRating: 4, isFavorite: false, status: .inProgress, startDate: Date().addingTimeInterval(-86400 * 5), endDate: Date(), notes: "Interesting perspective.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W8", workTitle: "The Catcher in the Rye", subtitle: nil, workDescription: "A story of teenage rebellion.", firstPublishYear: 1951),
+                edition: Edition(editionKey: "E8", workKey: "W8", editionTitle: "The Catcher in the Rye", numberOfPages: 234, isbn13: "978-0-316-76948-8"),
+                authors: [Author(authorKey: "A8", authorName: "J.D. Salinger")],
+                genres: [.fiction, .juvenile, .psychology],
+                userDetails: UserBookDetails(editionKey: "E8", addedDate: Date().addingTimeInterval(-86400 * 2), userRating: 3.5, isFavorite: false, status: .toDo, startDate: Date(), endDate: Date(), notes: "Classic coming-of-age.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W9", workTitle: "Harry Potter and the Philosopher's Stone", subtitle: nil, workDescription: "The first book in the Harry Potter series.", firstPublishYear: 1997),
+                edition: Edition(editionKey: "E9", workKey: "W9", editionTitle: "Harry Potter and the Philosopher's Stone", numberOfPages: 223, isbn13: "978-0-7475-3269-9"),
+                authors: [Author(authorKey: "A9", authorName: "J.K. Rowling")],
+                genres: [.fiction, .juvenile],
+                userDetails: UserBookDetails(editionKey: "E9", addedDate: Date().addingTimeInterval(-86400 * 365), userRating: 5, isFavorite: true, status: .done, startDate: Date().addingTimeInterval(-86400 * 360), endDate: Date().addingTimeInterval(-86400 * 358), notes: "The magic starts here.")
+            ),
+            CompleteBookData(
+                work: Work(workKey: "W10", workTitle: "A Brief History of Time", subtitle: nil, workDescription: "A popular-science book.", firstPublishYear: 1988),
+                edition: Edition(editionKey: "E10", workKey: "W10", editionTitle: "A Brief History of Time", numberOfPages: 212, isbn13: "978-0-553-38016-3"),
+                authors: [Author(authorKey: "A10", authorName: "Stephen Hawking")],
+                genres: [.science, .history, .philosophy],
+                userDetails: UserBookDetails(editionKey: "E10", addedDate: Date(), userRating: 4.5, isFavorite: false, status: .wantToRead, startDate: Date(), endDate: Date(), notes: "Excited to learn.")
             )
         ]
         
         for book in sampleBooks {
-            try DatabaseRepository.saveCompleteBook(book)
+            try DatabaseRepository.saveCompleteBook(book, in: db)
         }
     }
 }

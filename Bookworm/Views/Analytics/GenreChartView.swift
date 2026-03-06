@@ -164,9 +164,9 @@ struct ChartEntry: Equatable, Identifiable {
 }
 
 #Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
-
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
+    
     return GenreChartView()
-        .modelContainer(preview.container)
+        .databaseContext(.readWrite { dbQueue })
 }

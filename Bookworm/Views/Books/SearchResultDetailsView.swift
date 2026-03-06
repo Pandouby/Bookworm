@@ -210,6 +210,7 @@ struct SearchResultDetailsView: View {
     SearchResultDetailsView(searchResult: sampleBook, addBookAction: { book, status in
         print("Mock addBookAction — book: \(book), status: \(status)")
     })
+    .databaseContext(.readWrite { AppDatabase.preview() })
 }
 
 

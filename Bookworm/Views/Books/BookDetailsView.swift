@@ -7,7 +7,6 @@
 
 import AVFoundation
 import Foundation
-import SwiftData
 import SwiftUI
 import GRDBQuery
 import GRDB
@@ -144,5 +143,17 @@ private func saveData(book: CompleteBookDataViewModel) {
     print(book.asRecord)
     Task {
         try DatabaseRepository.saveCompleteBook(book.asRecord)
+    }
+}
+
+#Preview {
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
+    
+    let sampleBook = CompleteBookDataViewModel.sampleCompleteBookDataViewModels[0]
+    
+    return NavigationStack {
+        BookDetailsView(book: sampleBook)
+            .databaseContext(.readWrite { dbQueue })
     }
 }

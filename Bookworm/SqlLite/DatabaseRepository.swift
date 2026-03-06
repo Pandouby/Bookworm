@@ -2,7 +2,7 @@ import GRDB
 import Foundation
 
 struct DatabaseRepository {
-    private static var dbQueue: DatabaseQueue = AppDatabase.shared.dbQueue
+    static var dbQueue: DatabaseQueue!
 
     // MARK: - Generic CRUD
 
@@ -207,36 +207,42 @@ struct DatabaseRepository {
     }
     
     /// Save a CompleteBookData object to the database
-    static func saveCompleteBook(_ completeBook: CompleteBookData) throws {
-        try dbQueue.write { db in
-            // Save the work
-            try completeBook.work.save(db)
-            
-            // Save all authors
-            for author in completeBook.authors {
-                try author.save(db)
-                
-                // Link author to work
-                try AuthorWork(authorKey: author.authorKey, workKey: completeBook.work.workKey).save(db)
+    static func saveCompleteBook(_ completeBook: CompleteBookData, in db: Database? = nil) throws {
+        if let db = db {
+            try performSave(completeBook, in: db)
+        } else {
+            try dbQueue.write { db in
+                try performSave(completeBook, in: db)
             }
-            
-            // Save all genres
-            for genre in completeBook.genres {
-                let genreRecord = GenreRecord(genreId: genre.rawValue, genreName: genre.rawValue)
-                try genreRecord.save(db)
-                
-                // Link genre to work
-                try WorkGenre(workKey: completeBook.work.workKey, genreId: genre.rawValue).save(db)
-            }
-            
-            // Save the edition
-            try completeBook.edition.save(db)
-            
-            // Save UserBookDetails
-            try completeBook.userDetails.save(db)
-            
-            // Optional: handle edition publishers, languages, etc. here if needed
         }
+    }
+
+    private static func performSave(_ completeBook: CompleteBookData, in db: Database) throws {
+        // Save the work
+        try completeBook.work.save(db)
+        
+        // Save all authors
+        for author in completeBook.authors {
+            try author.save(db)
+            
+            // Link author to work
+            try AuthorWork(authorKey: author.authorKey, workKey: completeBook.work.workKey).save(db)
+        }
+        
+        // Save all genres
+        for genre in completeBook.genres {
+            let genreRecord = GenreRecord(genreId: genre.rawValue, genreName: genre.rawValue)
+            try genreRecord.save(db)
+            
+            // Link genre to work
+            try WorkGenre(workKey: completeBook.work.workKey, genreId: genre.rawValue).save(db)
+        }
+        
+        // Save the edition
+        try completeBook.edition.save(db)
+        
+        // Save UserBookDetails
+        try completeBook.userDetails.save(db)
     }
 
     // MARK: - Search

@@ -228,8 +228,9 @@ struct BooksView: View {
 
 #Preview {
     let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
     
-    BooksView()
+    return BooksView()
         .databaseContext(.readWrite { dbQueue })
 }
 

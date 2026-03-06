@@ -6,7 +6,6 @@
 //
 
 import AVFoundation
-import SwiftData
 import SwiftUI
 
 struct RatingView: View {

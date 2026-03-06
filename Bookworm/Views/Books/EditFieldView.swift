@@ -5,7 +5,6 @@
 //  Created by Silvan Dubach on 17.10.2024.
 //
 
-import SwiftData
 import SwiftUI
 
 struct EditFieldView: View {

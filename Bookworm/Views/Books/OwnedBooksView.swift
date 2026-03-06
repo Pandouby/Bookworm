@@ -278,9 +278,11 @@ struct OwnedBooksView: View {
 }
 
 #Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
-
-    return OwnedBooksView()
-        .modelContainer(preview.container)
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
+    
+    return NavigationStack {
+        OwnedBooksView()
+            .databaseContext(.readWrite { dbQueue })
+    }
 }

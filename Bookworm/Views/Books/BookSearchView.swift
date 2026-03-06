@@ -207,4 +207,12 @@ func saveCoverImage(_ image: UIImage, for id: String) throws -> URL {
     try data.write(to: url)
     return url
 }
+
+#Preview {
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
+    
+    return BookSearchView()
+        .databaseContext(.readWrite { dbQueue })
+}
    

@@ -120,9 +120,9 @@ struct WantToReadView: View {
 }
 
 #Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
-
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
+    
     return WantToReadView()
-        .modelContainer(preview.container)
+        .databaseContext(.readWrite { dbQueue })
 }

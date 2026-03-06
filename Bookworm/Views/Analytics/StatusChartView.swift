@@ -161,9 +161,9 @@ struct StatusChartEntry: Equatable, Identifiable {
 }
 
 #Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
-
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
+    
     return StatusChartView()
-        .modelContainer(preview.container)
+        .databaseContext(.readWrite { dbQueue })
 }

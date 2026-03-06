@@ -5,8 +5,8 @@
 //  Created by Silvan Dubach on 09.10.2024.
 //
 
-import SwiftData
 import SwiftUI
+import GRDB
 
 struct ContentView: View {
     @State private var tabIndex = 1
@@ -33,9 +33,9 @@ struct ContentView: View {
 }
 
 #Preview {
-    let preview = Preview()
-    preview.addExamples(Book.sampleBooks)
+    let dbQueue = AppDatabase.preview()
+    DatabaseRepository.dbQueue = dbQueue
     
     return ContentView()
-        .modelContainer(preview.container)
+        .databaseContext(.readWrite { dbQueue })
 }

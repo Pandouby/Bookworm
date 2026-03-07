@@ -107,9 +107,17 @@ extension CompleteBookDataViewModel: Comparable, Equatable {
     }
     
     static func < (lhs: CompleteBookDataViewModel, rhs: CompleteBookDataViewModel) -> Bool {
-        if lhs.addedDate != rhs.addedDate { return lhs.addedDate > rhs.addedDate }
-        if lhs.endDate != rhs.endDate { return lhs.endDate > rhs.endDate }
-        if lhs.status.sortOrder != rhs.status.sortOrder { return lhs.status.sortOrder < rhs.status.sortOrder }
+        // 1. Sort by status order (To Do < Paused < In Progress < Done)
+        if lhs.status.sortOrder != rhs.status.sortOrder {
+            return lhs.status.sortOrder < rhs.status.sortOrder
+        }
+        
+        // 2. Sort by date finished (most recent first)
+        if lhs.endDate != rhs.endDate {
+            return lhs.endDate > rhs.endDate
+        }
+        
+        // 3. Sort by title alphabetically
         return lhs.workTitle < rhs.workTitle
     }
 }

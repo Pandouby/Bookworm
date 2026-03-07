@@ -16,6 +16,7 @@ struct RecommendationCard: View {
     
     @State private var offset = CGSize.zero
     @State private var isDragging = false
+    @GestureState private var isPressing = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -113,7 +114,7 @@ struct RecommendationCard: View {
                         .padding(.top, 24)
                     }
                 }
-                .scrollDisabled(isDragging)
+                .scrollDisabled(isDragging || offset.width != 0 || offset.height != 0)
                 .clipShape(RoundedRectangle(cornerRadius: 20)) // Matches image radius exactly
             }
             .padding(.horizontal, 16) // Narrow the whole column to match image width
@@ -214,9 +215,10 @@ struct RecommendationCard: View {
         }
         .offset(x: offset.width, y: offset.height)
         .rotationEffect(.degrees(Double(offset.width / 15)))
-        .scaleEffect(isDragging ? 1.03 : 1.0)
-        .gesture(
-            LongPressGesture(minimumDuration: 0.3)
+        .scaleEffect(isDragging ? 1.05 : 1.0)
+        .contentShape(Rectangle())
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.5)
                 .onEnded { _ in
                     let generator = UIImpactFeedbackGenerator(style: .medium)
                     generator.impactOccurred()
@@ -224,39 +226,38 @@ struct RecommendationCard: View {
                         isDragging = true
                     }
                 }
-                .simultaneously(with:
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { gesture in
-                            if isDragging {
-                                offset = gesture.translation
-                            } else if abs(gesture.translation.width) > abs(gesture.translation.height) {
-                                // Only allow immediate drag if it's horizontal
-                                offset.width = gesture.translation.width
-                            }
+        )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { gesture in
+                    if isDragging {
+                        // If lifted, move freely
+                        offset = gesture.translation
+                    } else if abs(gesture.translation.width) > 10 && abs(gesture.translation.width) > abs(gesture.translation.height) {
+                        // Horizontal swipe threshold met
+                        offset.width = gesture.translation.width
+                    }
+                }
+                .onEnded { gesture in
+                    let finalOffset = gesture.translation
+                    
+                    withAnimation(.spring()) {
+                        if finalOffset.width > 140 {
+                            offset.width = 1000
+                            onSwipeRight()
+                        } else if finalOffset.width < -140 {
+                            offset.width = -1000
+                            onSwipeLeft()
+                        } else if isDragging && finalOffset.height < -140 {
+                            offset.height = -1000
+                            onSwipeUp()
+                        } else {
+                            offset = .zero
                         }
-                        .onEnded { gesture in
-                            let finalOffset = gesture.translation
-                            let verticalSwipe = isDragging && finalOffset.height < -140
-                            let horizontalSwipeRight = finalOffset.width > 140
-                            let horizontalSwipeLeft = finalOffset.width < -140
-                            
-                            withAnimation(.spring()) {
-                                if horizontalSwipeRight {
-                                    offset.width = 1000
-                                    onSwipeRight()
-                                } else if horizontalSwipeLeft {
-                                    offset.width = -1000
-                                    onSwipeLeft()
-                                } else if verticalSwipe {
-                                    offset.height = -1000
-                                    onSwipeUp()
-                                } else {
-                                    offset = .zero
-                                }
-                                isDragging = false
-                            }
-                        }
-                )
+                        // Guaranteed reset of dragging state on release
+                        isDragging = false
+                    }
+                }
         )
         .padding(.horizontal, 16)
         .frame(maxHeight: .infinity)

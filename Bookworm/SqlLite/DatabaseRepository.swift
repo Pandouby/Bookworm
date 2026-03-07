@@ -159,8 +159,8 @@ struct DatabaseRepository {
                 let userDetails: UserBookDetails = try UserBookDetails(row: row)
                 let edition: Edition = row["Edition"]
                 let work: Work = row["Work"]
-                let authors: [Author] = row[Author.databaseTableName]
-                let genreRecords: [GenreRecord] = row[GenreRecord.databaseTableName]
+                let authors: [Author] = row["Authors"]
+                let genreRecords: [GenreRecord] = row["Genres"]
                 
                 let genres = genreRecords.compactMap { Genre(rawValue: $0.genreName) }
                 
@@ -191,8 +191,10 @@ struct DatabaseRepository {
             let userDetails: UserBookDetails = try UserBookDetails(row: row)
             let edition: Edition = row["Edition"]
             let work: Work = row["Work"]
-            let authors: [Author] = row[Author.databaseTableName]
-            let genreRecords: [GenreRecord] = row[GenreRecord.databaseTableName]
+            
+            // Available keys are "Authors" and "Genres" according to error
+            let authors: [Author] = row["Authors"]
+            let genreRecords: [GenreRecord] = row["Genres"]
             
             let genres = genreRecords.compactMap { Genre(rawValue: $0.genreName) }
             
@@ -208,41 +210,55 @@ struct DatabaseRepository {
     
     /// Save a CompleteBookData object to the database
     static func saveCompleteBook(_ completeBook: CompleteBookData, in db: Database? = nil) throws {
-        if let db = db {
-            try performSave(completeBook, in: db)
-        } else {
-            try dbQueue.write { db in
+        do {
+            if let db = db {
                 try performSave(completeBook, in: db)
+            } else {
+                try dbQueue.write { db in
+                    try performSave(completeBook, in: db)
+                }
             }
+        } catch {
+            print("❌ DatabaseRepository.saveCompleteBook failed: \(error)")
+            throw error
         }
     }
 
     private static func performSave(_ completeBook: CompleteBookData, in db: Database) throws {
+        print("💾 Starting performSave for: \(completeBook.work.workTitle)")
+        
         // Save the work
         try completeBook.work.save(db)
+        print("✅ Work saved")
         
         // Save all authors
         for author in completeBook.authors {
             try author.save(db)
+            print("✅ Author saved: \(author.authorName)")
             
             // Link author to work
             try AuthorWork(authorKey: author.authorKey, workKey: completeBook.work.workKey).save(db)
+            print("✅ Linked author to work")
         }
         
         // Save all genres
         for genre in completeBook.genres {
             let genreRecord = GenreRecord(genreId: genre.rawValue, genreName: genre.rawValue)
             try genreRecord.save(db)
+            print("✅ Genre saved: \(genre.rawValue)")
             
             // Link genre to work
             try WorkGenre(workKey: completeBook.work.workKey, genreId: genre.rawValue).save(db)
+            print("✅ Linked genre to work")
         }
         
         // Save the edition
         try completeBook.edition.save(db)
+        print("✅ Edition saved")
         
         // Save UserBookDetails
         try completeBook.userDetails.save(db)
+        print("✅ UserBookDetails saved")
     }
 
     // MARK: - Search

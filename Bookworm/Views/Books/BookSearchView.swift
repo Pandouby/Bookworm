@@ -215,4 +215,3 @@ func saveCoverImage(_ image: UIImage, for id: String) throws -> URL {
     return BookSearchView()
         .databaseContext(.readWrite { dbQueue })
 }
-   

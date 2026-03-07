@@ -178,14 +178,19 @@ struct PagesAnalytics: View {
                         }
                         
                         if !isAtCurrentPeriod {
-                            Button("Go to Today") {
+                            Button(action: {
                                 withAnimation {
                                     baseDate = Calendar.current.startOfDay(for: Date())
                                     selectedDate = nil
                                 }
+                            }) {
+                                Text("Go to Today")
+                                    .font(.system(.caption2, design: .rounded, weight: .bold))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Capsule().fill(Color.accentColor.opacity(0.1)))
+                                    .foregroundColor(.accentColor)
                             }
-                            .font(.system(.caption2, design: .rounded, weight: .bold))
-                            .foregroundColor(.accentColor)
                         }
                     }
                 }

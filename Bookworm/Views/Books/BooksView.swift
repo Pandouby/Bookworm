@@ -233,4 +233,3 @@ struct BooksView: View {
     return BooksView()
         .databaseContext(.readWrite { dbQueue })
 }
-

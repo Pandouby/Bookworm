@@ -10,17 +10,37 @@ import SwiftUI
 struct EditFieldView: View {
     var fieldName: String
     @Binding var inputValue: String
+    @FocusState private var isFocused: Bool
+    
+    // Local state to hold the value while editing
+    @State private var tempValue: String = ""
 
     var body: some View {
         Form {
-            TextField(fieldName, text: $inputValue)
-                .modifier(TextFieldClearButton(inputValue: $inputValue))
+            TextField(fieldName, text: $tempValue)
+                .focused($isFocused)
+                .modifier(TextFieldClearButton(inputValue: $tempValue))
                 .multilineTextAlignment(.leading)
                 .scrollDismissesKeyboard(.automatic)
-            //.padding()
-
+                .onSubmit {
+                    updateValue()
+                }
         }
         .navigationTitle("Edit \(fieldName)")
+        .onAppear {
+            tempValue = inputValue
+            isFocused = true
+        }
+        .onDisappear {
+            updateValue()
+        }
+    }
+    
+    private func updateValue() {
+        let trimmed = tempValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            inputValue = trimmed
+        }
     }
 }
 
@@ -39,6 +59,7 @@ struct TextFieldClearButton: ViewModifier {
                             .foregroundColor(Color(UIColor.opaqueSeparator))
                     }
                 )
+                .buttonStyle(.plain) // Prevents the button from capturing taps intended for the text field
             }
         }
     }

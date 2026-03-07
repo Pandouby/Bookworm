@@ -78,14 +78,35 @@ final class CompleteBookDataViewModel: Identifiable  {
         )
     }
     
+    var authorsEdited: [Author] {
+        if let first = originalAuthors.first {
+            return [first.copy(authorName: authorName)]
+        } else {
+            // Fallback for books without any initial author data
+            return [Author(authorKey: UUID().uuidString, authorName: authorName)]
+        }
+    }
+    
     /// Convert everything back into a complete record structure
     var asRecord: CompleteBookData {
         CompleteBookData(
             work: workEdited,
             edition: editionEdited,
-            authors: originalAuthors,
+            authors: authorsEdited,
             genres: genresEdited,
             userDetails: userDetailsEdited
+        )
+    }
+}
+
+extension Author {
+    func copy(authorName: String? = nil) -> Author {
+        Author(
+            authorKey: self.authorKey,
+            authorName: authorName ?? self.authorName,
+            birthDate: self.birthDate,
+            deathDate: self.deathDate,
+            wikipedia: self.wikipedia
         )
     }
 }

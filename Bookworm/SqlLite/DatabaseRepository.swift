@@ -231,6 +231,11 @@ struct DatabaseRepository {
         try completeBook.work.save(db)
         print("✅ Work saved")
         
+        // Clear existing associations to avoid duplicates/orphans when updating
+        try AuthorWork.filter(AuthorWork.Columns.workKey == completeBook.work.workKey).deleteAll(db)
+        try WorkGenre.filter(WorkGenre.Columns.workKey == completeBook.work.workKey).deleteAll(db)
+        print("🧹 Existing associations cleared")
+        
         // Save all authors
         for author in completeBook.authors {
             try author.save(db)

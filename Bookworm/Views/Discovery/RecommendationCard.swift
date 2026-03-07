@@ -12,15 +12,17 @@ struct RecommendationCard: View {
     var book: CompleteBookData
     var onSwipeLeft: () -> Void
     var onSwipeRight: () -> Void
+    var onSwipeUp: () -> Void
     
     @State private var offset = CGSize.zero
+    @State private var isDragging = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
             // Card Background
             RoundedRectangle(cornerRadius: 30)
                 .fill(Color(.secondarySystemBackground))
-                .shadow(color: Color.black.opacity(0.12), radius: 20, x: 0, y: 10)
+                .shadow(color: Color.black.opacity(isDragging ? 0.25 : 0.12), radius: isDragging ? 30 : 20, x: 0, y: isDragging ? 20 : 10)
             
             // Content Container with Fixed Top Padding
             VStack(spacing: 0) {
@@ -111,6 +113,7 @@ struct RecommendationCard: View {
                         .padding(.top, 24)
                     }
                 }
+                .scrollDisabled(isDragging)
                 .clipShape(RoundedRectangle(cornerRadius: 20)) // Matches image radius exactly
             }
             .padding(.horizontal, 16) // Narrow the whole column to match image width
@@ -130,7 +133,7 @@ struct RecommendationCard: View {
                 .frame(height: 160)
                 .allowsHitTesting(false)
                 
-                HStack(spacing: 48) {
+                HStack(spacing: 32) {
                     Button(action: {
                         withAnimation(.interpolatingSpring(stiffness: 150, damping: 15)) {
                             offset.width = -800
@@ -141,6 +144,23 @@ struct RecommendationCard: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.red)
                             .frame(width: 64, height: 64)
+                            .background(
+                                Circle()
+                                    .fill(Color(.secondarySystemBackground))
+                                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                            )
+                    }
+                    
+                    Button(action: {
+                        withAnimation(.interpolatingSpring(stiffness: 150, damping: 15)) {
+                            offset.height = -1000
+                            onSwipeUp()
+                        }
+                    }) {
+                        Image(systemName: "books.vertical.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.blue)
+                            .frame(width: 54, height: 54)
                             .background(
                                 Circle()
                                     .fill(Color(.secondarySystemBackground))
@@ -167,7 +187,7 @@ struct RecommendationCard: View {
                 }
                 .padding(.bottom, 32)
             }
-            .allowsHitTesting(true)
+            .allowsHitTesting(!isDragging)
             .clipShape(RoundedRectangle(cornerRadius: 30))
             
             // Visual Swipe Indicators (STAMP style) - Back over the image
@@ -182,39 +202,61 @@ struct RecommendationCard: View {
                         .padding(.trailing, 40)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .opacity(Double(min(-offset.width / 100, 1)))
+                } else if offset.height < -20 {
+                    stamp(text: "READ", color: .blue, rotation: 0)
+                        .frame(maxHeight: .infinity, alignment: .center)
+                        .opacity(Double(min(-offset.height / 100, 1)))
                 }
             }
             .frame(height: 400) // Match cover image height
             .padding(.top, 16) // Account for fixed top spacer
             .allowsHitTesting(false)
         }
-        .offset(x: offset.width, y: offset.height * 0.2)
+        .offset(x: offset.width, y: offset.height)
         .rotationEffect(.degrees(Double(offset.width / 15)))
+        .scaleEffect(isDragging ? 1.03 : 1.0)
         .gesture(
-            DragGesture()
-                .onChanged { gesture in
-                    // Only start swiping if the movement is predominantly horizontal
-                    if abs(gesture.translation.width) > abs(gesture.translation.height) || abs(offset.width) > 0 {
-                        offset = gesture.translation
-                    }
-                }
+            LongPressGesture(minimumDuration: 0.3)
                 .onEnded { _ in
-                    if offset.width > 140 {
-                        withAnimation(.spring()) {
-                            offset.width = 1000
-                            onSwipeRight()
-                        }
-                    } else if offset.width < -140 {
-                        withAnimation(.spring()) {
-                            offset.width = -1000
-                            onSwipeLeft()
-                        }
-                    } else {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                            offset = .zero
-                        }
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        isDragging = true
                     }
                 }
+                .simultaneously(with:
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { gesture in
+                            if isDragging {
+                                offset = gesture.translation
+                            } else if abs(gesture.translation.width) > abs(gesture.translation.height) {
+                                // Only allow immediate drag if it's horizontal
+                                offset.width = gesture.translation.width
+                            }
+                        }
+                        .onEnded { gesture in
+                            let finalOffset = gesture.translation
+                            let verticalSwipe = isDragging && finalOffset.height < -140
+                            let horizontalSwipeRight = finalOffset.width > 140
+                            let horizontalSwipeLeft = finalOffset.width < -140
+                            
+                            withAnimation(.spring()) {
+                                if horizontalSwipeRight {
+                                    offset.width = 1000
+                                    onSwipeRight()
+                                } else if horizontalSwipeLeft {
+                                    offset.width = -1000
+                                    onSwipeLeft()
+                                } else if verticalSwipe {
+                                    offset.height = -1000
+                                    onSwipeUp()
+                                } else {
+                                    offset = .zero
+                                }
+                                isDragging = false
+                            }
+                        }
+                )
         )
         .padding(.horizontal, 16)
         .frame(maxHeight: .infinity)
@@ -245,7 +287,8 @@ struct RecommendationCard: View {
     return RecommendationCard(
         book: books[0],
         onSwipeLeft: { print("Left") },
-        onSwipeRight: { print("Right") }
+        onSwipeRight: { print("Right") },
+        onSwipeUp: { print("Up") }
     )
     .databaseContext(.readWrite { dbQueue })
 }

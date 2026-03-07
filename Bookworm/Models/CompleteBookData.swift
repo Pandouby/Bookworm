@@ -30,15 +30,21 @@ struct AllCompleteBooksQuery: ValueObservationQueryable {
     var statuses: [Status] = []
     
     func fetch(_ db: Database) throws -> [CompleteBookData] {
-        //let allBooks = try CompleteBookData.fetchAll(db)
         let allBooks = try DatabaseRepository.queryAllUserBookDetails(db: db)
         
+        print("🔍 AllCompleteBooksQuery fetched \(allBooks.count) total books from DB")
+        for book in allBooks {
+            print("  - Book: \(book.work.workTitle), Status: \(book.userDetails.status.rawValue)")
+        }
+
         // no filter -> return all
         if statuses.isEmpty {
             return allBooks
         }
         
-        return allBooks.filter { statuses.contains($0.userDetails.status) }
+        let filtered = allBooks.filter { statuses.contains($0.userDetails.status) }
+        print("🔍 AllCompleteBooksQuery returning \(filtered.count) books after filtering for: \(statuses.map { $0.rawValue })")
+        return filtered
     }
 }
 

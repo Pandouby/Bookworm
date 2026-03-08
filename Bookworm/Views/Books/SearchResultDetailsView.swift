@@ -3,6 +3,7 @@ import SwiftUI
 struct SearchResultDetailsView: View {
     var searchResult: FullSearchResult
     let addBookAction: (FullSearchResult, Status) -> Void
+    var isWantToReadView: Bool = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -152,7 +153,9 @@ struct SearchResultDetailsView: View {
         .toolbar {
             ToolbarItem {
                 Button(action: {
-                    addBookAction(searchResult, .toDo)
+                    let status: Status = isWantToReadView ? .wantToRead : .toDo
+                    addBookAction(searchResult, status)
+                    dismiss()
                 }) {
                     Label("Add Book", systemImage: "plus")
                 }

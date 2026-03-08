@@ -64,7 +64,11 @@ struct BookSearchView: View {
         List {
             ForEach(searchResults) { book in
                 NavigationLink(
-                    destination: SearchResultDetailsView(searchResult: book, addBookAction: addBookToLibrary)
+                    destination: SearchResultDetailsView(
+                        searchResult: book, 
+                        addBookAction: addBookToLibrary,
+                        isWantToReadView: isWantToReadView ?? false
+                    )
                 ) {
                     BookRowView(book: book, addBookAction: addBookToLibrary)
                 }

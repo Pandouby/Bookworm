@@ -12,10 +12,17 @@ struct RatingView: View {
     init(_ rating: Binding<Double>, maxRating: Int = 5) {
         _rating = rating
         self.maxRating = maxRating
+        // Initialize local display rating with the starting value
+        _displayRating = State(initialValue: rating.wrappedValue)
     }
 
     let maxRating: Int
     @Binding var rating: Double
+    
+    // Local state to track visual changes during drag
+    @State private var displayRating: Double
+    @State private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    
     @State private var starSize: CGSize = .zero
     @State private var controlSize: CGSize = .zero
     @GestureState private var dragging: Bool = false
@@ -23,20 +30,18 @@ struct RatingView: View {
     var body: some View {
         ZStack {
             HStack(spacing: 30) {
-                Spacer()
-                ForEach(0..<Int(rating), id: \.self) { idx in
+                ForEach(0..<Int(displayRating), id: \.self) { idx in
                     fullStar
                 }
 
-                if rating != floor(rating) {
+                if displayRating != floor(displayRating) {
                     halfStar
                 }
 
-                ForEach(0..<Int(Double(maxRating) - rating), id: \.self) {
+                ForEach(0..<Int(Double(maxRating) - displayRating), id: \.self) {
                     idx in
                     emptyStar
                 }
-                Spacer()
             }
             .background(
                 GeometryReader { proxy in
@@ -57,9 +62,28 @@ struct RatingView: View {
                 .gesture(
                     DragGesture(minimumDistance: 0, coordinateSpace: .local)
                         .onChanged { value in
-                            rating = rating(at: value.location)
+                            // Prepare generator for upcoming feedback
+                            feedbackGenerator.prepare()
+                            
+                            let newRating = calculateRating(at: value.location)
+                            if newRating != displayRating {
+                                displayRating = newRating
+                            }
+                        }
+                        .onEnded { value in
+                            // Commit the final rating to the binding only when finger is lifted
+                            rating = displayRating
                         }
                 )
+        }
+        .onChange(of: displayRating) { _, _ in
+            feedbackGenerator.impactOccurred()
+        }
+        .onChange(of: rating) { _, newValue in
+            // Keep display in sync if rating is changed from outside (e.g. initial load)
+            if newValue != displayRating {
+                displayRating = newValue
+            }
         }
     }
 
@@ -81,29 +105,19 @@ struct RatingView: View {
             .foregroundColor(.accentColor)
     }
 
-    private func rating(at position: CGPoint) -> Double {
-        let singleStarWidth = starSize.width
-        let totalPaddingWidth =
-            controlSize.width - CGFloat(maxRating) * singleStarWidth
-        let singlePaddingWidth = totalPaddingWidth / (CGFloat(maxRating) - 1)
-        let starWithSpaceWidth = Double(singleStarWidth + singlePaddingWidth)
-        let x = Double(position.x)
-
-        let starIdx = Int(x / starWithSpaceWidth)
-        let starPercent =
-            x.truncatingRemainder(dividingBy: starWithSpaceWidth)
-            / Double(singleStarWidth) * 100
-
-        let rating: Double
-        if starPercent < 25 {
-            rating = Double(starIdx)
-        } else if starPercent <= 75 {
-            rating = Double(starIdx) + 0.5
-        } else {
-            rating = Double(starIdx) + 1
-        }
-
-        return min(Double(maxRating), max(0, rating))
+    private func calculateRating(at position: CGPoint) -> Double {
+        let x = position.x
+        let width = controlSize.width
+        
+        // Map x position directly to 0...maxRating
+        let relativeX = max(0, min(x, width))
+        let normalized = Double(relativeX / width)
+        let rawRating = normalized * Double(maxRating)
+        
+        // Snapping to 0.5 increments
+        let snappedRating = (rawRating * 2).rounded() / 2
+        
+        return min(Double(maxRating), max(0, snappedRating))
     }
 }
 

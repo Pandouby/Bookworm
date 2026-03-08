@@ -23,6 +23,8 @@ final class CompleteBookDataViewModel: Identifiable  {
     var startDate: Date
     var endDate: Date
     var notes: String
+    var cover: String?
+    var editionKey: String
     
     init(from data: CompleteBookData) {
         self.originalWork = data.work
@@ -32,6 +34,7 @@ final class CompleteBookDataViewModel: Identifiable  {
         self.originalUserBookDetails = data.userDetails
         
         // Copy fields into observable state
+        self.editionKey = data.edition.editionKey
         // Work
         self.workTitle = data.work.workTitle
         self.genre = data.genres.first ?? .nonClassifiable
@@ -39,6 +42,7 @@ final class CompleteBookDataViewModel: Identifiable  {
         self.authorName = data.authors.first?.authorName ?? "Unknown Author"
         // Edition
         self.pageCount = data.edition.numberOfPages ?? 0
+        self.cover = data.edition.cover
         // UserBookDetails
         self.userRating = data.userDetails.userRating
         self.isFavorite = data.userDetails.isFavorite

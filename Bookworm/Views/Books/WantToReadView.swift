@@ -33,15 +33,27 @@ struct WantToReadView: View {
         List {
             ForEach(isSearching ? searchResults : wantToReadBooks) { book in
                 NavigationLink(destination: BookDetailsView(book: book)) {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(book.workTitle).font(.headline)
+                    HStack(spacing: 12) {
+                        // Book Cover with local caching
+                        BookCoverView(coverURL: book.cover, editionKey: book.editionKey)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 40, height: 60)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(book.workTitle)
+                                .font(.system(.headline, design: .rounded))
+                                .lineLimit(1)
                             
                             Text(book.authorName)
+                                .font(.system(.subheadline, design: .rounded))
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
                         }
 
-                        StatusIcon(status: book.status)
-                            .padding(.leading, 10)
+                        Spacer()
+
+                        StatusIcon(status: book.status, iconSize: 24)
                     }
                 }
                 .swipeActions(edge: .leading) {

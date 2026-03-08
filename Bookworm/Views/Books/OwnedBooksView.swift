@@ -56,66 +56,77 @@ struct OwnedBooksView: View {
     }
 
     var body: some View {        
-        List {
-            if isFiltering {
-                Section {
-                    Button(action: {
-                        withAnimation {
-                            filterFavoritesOnly = false
-                            selectedStatusFilter = nil
-                            selectedGenreFilter = nil
-                        }
-                    }) {
-                        Label("Clear all filters", systemImage: "xmark.circle")
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
-            
-            ForEach(isSearching ? searchResults: ownedBooks) { book in
-                NavigationLink(destination: BookDetailsView(book: book)) {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(book.workTitle).font(.headline)
-                                
-                                if book.isFavorite {
-                                    Image(systemName: "heart.fill")
-                                        .foregroundStyle(.red)
+                    List {
+                        if isFiltering {
+                            Section {
+                                Button(action: {
+                                    withAnimation {
+                                        filterFavoritesOnly = false
+                                        selectedStatusFilter = nil
+                                        selectedGenreFilter = nil
+                                    }
+                                }) {
+                                    Label("Clear all filters", systemImage: "xmark.circle")
+                                        .foregroundColor(.accentColor)
                                 }
                             }
-                            
-                            Text(book.authorName)
                         }
-
-                        StatusIcon(status: book.status)
-                            .padding(.leading, 10)
-                    }
-                }
-                .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                    Button("Done") {
-                        book.status = Status.done
-                        Task {
-                            try DatabaseRepository.saveCompleteBook(book.asRecord)
+                        
+                                        ForEach(isSearching ? searchResults: ownedBooks) { book in
+                                            NavigationLink(destination: BookDetailsView(book: book)) {
+                                                HStack(spacing: 12) {
+                                                    // Book Cover with local caching
+                                                    BookCoverView(coverURL: book.cover, editionKey: book.editionKey)
+                                                        .aspectRatio(contentMode: .fill)
+                                                        .frame(width: 40, height: 60)
+                                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                                    
+                                                    VStack(alignment: .leading, spacing: 4) {                                        HStack {
+                                            Text(book.workTitle)
+                                                .font(.system(.headline, design: .rounded))
+                                                .lineLimit(1)
+                                            
+                                            if book.isFavorite {
+                                                Image(systemName: "heart.fill")
+                                                    .font(.caption2)
+                                                    .foregroundStyle(.red)
+                                            }
+                                        }
+                                        
+                                        Text(book.authorName)
+                                            .font(.system(.subheadline, design: .rounded))
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                    }
+        
+                                    Spacer()
+        
+                                    StatusIcon(status: book.status, iconSize: 24)
+                                }
+                            }
+                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                Button("Done") {
+                                    book.status = Status.done
+                                    Task {
+                                        try DatabaseRepository.saveCompleteBook(book.asRecord)
+                                    }
+                                }
+                                .tint(.done)
+                            }
+                            .swipeActions(edge: .leading) {
+                                Button("Reading") {
+                                    book.status = Status.inProgress
+                                    Task {
+                                        try DatabaseRepository.saveCompleteBook(book.asRecord)
+                                    }
+                                }
+                                .tint(.inProgress)
+                            }
                         }
-                    }
-                    .tint(.done)
-                }
-                .swipeActions(edge: .leading) {
-                    Button("Reading") {
-                        book.status = Status.inProgress
-                        Task {
-                            try DatabaseRepository.saveCompleteBook(book.asRecord)
+                        .onDelete { offsets in
+                            handleDelete(offsets: offsets)
                         }
-                    }
-                    .tint(.inProgress)
-                }
-            }
-            .onDelete { offsets in
-                handleDelete(offsets: offsets)
-            }
-        }
-        .confirmationDialog(
+                    }        .confirmationDialog(
             "Delete Favorite Book?",
             isPresented: $showFavoriteDeleteDialog,
             titleVisibility: .visible
@@ -238,7 +249,7 @@ struct OwnedBooksView: View {
 
     private func addItem() {
         withAnimation {
-            isBookSearchShowing = true
+             isBookSearchShowing = true
         }
     }
     

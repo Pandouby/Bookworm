@@ -1,22 +1,30 @@
 import SwiftUI
 
 struct SearchResultDetailsView: View {
-    @State var searchResult: FullSearchResult
+    let initialResult: FullSearchResult // Permanent record from the first call
+    @State var searchResult: FullSearchResult // Stateful record for enrichment
     let addBookAction: (FullSearchResult, Status) -> Void
     var isWantToReadView: Bool = false
     @Environment(\.dismiss) var dismiss
     
     @State private var isLoadingDetails = false
+    
+    init(searchResult: FullSearchResult, addBookAction: @escaping (FullSearchResult, Status) -> Void, isWantToReadView: Bool = false) {
+        self.initialResult = searchResult
+        self._searchResult = State(initialValue: searchResult)
+        self.addBookAction = addBookAction
+        self.isWantToReadView = isWantToReadView
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 15) {
                 
                 VStack {
-                    Text(searchResult.work.workTitle)
+                    Text(initialResult.work.workTitle) // Use initial
                         .font(.title)
                     
-                    if let author = searchResult.authors?.first {
+                    if let author = initialResult.authors?.first { // Use initial
                         Text("By \(author.authorName)")
                             .font(.title3)
                             .opacity(0.8)
@@ -27,7 +35,7 @@ struct SearchResultDetailsView: View {
                 
                 HStack(spacing: 15) {
                     
-                    if searchResult.edition?.coverLink != "" {
+                    if initialResult.edition?.coverLink != nil { // Use initial
                         
                         VStack {
                             searchResultDetailWidget
@@ -40,7 +48,8 @@ struct SearchResultDetailsView: View {
                                     RoundedRectangle(cornerRadius: 24)
                                 )
                             
-                            if let coverLink = searchResult.edition?.coverLink, !coverLink.isEmpty {
+                            // Always use initial cover to prevent flickering/changing
+                            if let coverLink = initialResult.edition?.coverLink, !coverLink.isEmpty {
                                 AsyncImage(
                                     url: URL(string: coverLink)
                                 ) { image in
@@ -116,26 +125,40 @@ struct SearchResultDetailsView: View {
         .task {
             // Fetch full details (description, etc) on demand
             if searchResult.work.description == nil {
-                let originalCoverLink = searchResult.edition?.coverLink
                 isLoadingDetails = true
-                if var fullDetails = await fetchCompleteBookDataByWork(for: searchResult.work, languages: ["eng"]) {
-                    // Preserve the cover link from search results if the detail fetch doesn't find one
-                    if (fullDetails.edition?.coverLink == nil || fullDetails.edition?.coverLink?.isEmpty == true) && originalCoverLink != nil {
-                        var updatedEdition = fullDetails.edition
-                        updatedEdition?.coverLink = originalCoverLink
-                        
-                        fullDetails = FullSearchResult(
-                            work: fullDetails.work,
-                            edition: updatedEdition,
-                            authors: fullDetails.authors,
-                            genre: fullDetails.genre,
-                            publisher: fullDetails.publisher,
-                            languages: fullDetails.languages
-                        )
-                    }
-                    
+                if let fullDetails = await fetchCompleteBookDataByWork(for: searchResult.work, languages: ["eng"]) {
                     withAnimation {
-                        self.searchResult = fullDetails
+                        // Enrichment: Merge initial data with deep details from the second call
+                        let enriched = FullSearchResult(
+                            work: WorkResponse(
+                                workKey: initialResult.work.workKey,
+                                workTitle: initialResult.work.workTitle,
+                                description: fullDetails.work.description,
+                                editionKeys: initialResult.work.editionKeys,
+                                authorKeys: initialResult.work.authorKeys,
+                                authorNames: initialResult.work.authorNames,
+                                coverId: initialResult.work.coverId ?? fullDetails.work.coverId,
+                                medianPageCount: initialResult.work.medianPageCount,
+                                languages: initialResult.work.languages,
+                                firstPublishYear: initialResult.work.firstPublishYear,
+                                subjects: initialResult.work.subjects
+                            ),
+                            edition: EditionResponse(
+                                title: initialResult.edition?.title ?? fullDetails.edition?.title ?? "",
+                                key: initialResult.edition?.key ?? fullDetails.edition?.key ?? "",
+                                number_of_pages: (initialResult.edition?.number_of_pages ?? 0) > 0 ? initialResult.edition?.number_of_pages : fullDetails.edition?.number_of_pages,
+                                isbn_13: initialResult.edition?.isbn_13 ?? fullDetails.edition?.isbn_13,
+                                isbn_10: initialResult.edition?.isbn_10 ?? fullDetails.edition?.isbn_10,
+                                publish_date: initialResult.edition?.publish_date ?? fullDetails.edition?.publish_date, // Enriched date
+                                coverLink: initialResult.edition?.coverLink ?? fullDetails.edition?.coverLink,
+                                publishers: fullDetails.edition?.publishers
+                            ),
+                            authors: initialResult.authors,
+                            genre: initialResult.genre,
+                            publisher: fullDetails.edition?.publishers,
+                            languages: initialResult.languages
+                        )
+                        self.searchResult = enriched
                     }
                 }
                 isLoadingDetails = false
@@ -162,6 +185,7 @@ struct SearchResultDetailsView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 12) {
+                    // Use searchResult (stateful) to show data as it loads
                     if let pages = searchResult.edition?.number_of_pages, pages > 0 {
                         HStack(spacing: 8) {
                             Image(systemName: "book.pages")
@@ -178,7 +202,7 @@ struct SearchResultDetailsView: View {
                         .font(.system(.caption, design: .rounded, weight: .medium))
                     }
                     
-                    if let publisher = searchResult.edition?.publishers?.first, !publisher.isEmpty {
+                    if let publisher = searchResult.publisher?.first ?? searchResult.edition?.publishers?.first, !publisher.isEmpty {
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "building.2")
                             Text(publisher)
@@ -189,9 +213,7 @@ struct SearchResultDetailsView: View {
                 }
                 .foregroundStyle(.white)
                 
-                Spacer(minLength: 8)
-                
-                // Genre Pill at the bottom
+                // Genre Pill directly below the list
                 if let genre = searchResult.genre {
                     Text(genre.rawValue)
                         .font(.system(.caption, design: .rounded, weight: .bold))
@@ -199,6 +221,7 @@ struct SearchResultDetailsView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(Capsule().fill(Color.white.opacity(0.2)))
+                        .padding(.top, 4)
                 }
             }
             .padding(20)
@@ -209,6 +232,7 @@ struct SearchResultDetailsView: View {
             ToolbarItem {
                 Button(action: {
                     let status: Status = isWantToReadView ? .wantToRead : .toDo
+                    // Save using the enriched result if we have it, otherwise initial
                     addBookAction(searchResult, status)
                     dismiss()
                 }) {
@@ -273,5 +297,3 @@ struct SearchResultDetailsView: View {
     }, isWantToReadView: false)
     .databaseContext(.readWrite { AppDatabase.preview() })
 }
-
-

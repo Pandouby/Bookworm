@@ -89,6 +89,9 @@ struct WorkResponse: Codable {
     var description: DescriptionValue?
     let editionKeys: [String]?
     let authorKeys: [String]?
+    let authorNames: [String]?
+    let coverId: Int?
+    let medianPageCount: Int?
     let languages: [String]?
     let firstPublishYear: Int?
     let subjects: [String]?
@@ -99,6 +102,9 @@ struct WorkResponse: Codable {
         case description
         case editionKeys = "edition_key"
         case authorKeys = "author_key"
+        case authorNames = "author_name"
+        case coverId = "cover_i"
+        case medianPageCount = "number_of_pages_median"
         case languages = "language"
         case firstPublishYear = "first_publish_year"
         case subjects = "subject"

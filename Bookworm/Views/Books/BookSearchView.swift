@@ -238,11 +238,12 @@ struct BookSearchView: View {
     // MARK: - FETCH WORKS
 
     private func fetchWorks(for query: String) async {
-        let worksLimit = 10
+        let worksLimit = 15 // Increased limit as it's now much faster
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
+        // Optimized URL: Fixed typo 'langauge', changed sort to default (relevance), and added fields for immediate display
         guard let url = URL(string:
-                                "https://openlibrary.org/search.json?title=\(encoded)&fields=key,title,subtitle,edition_key,author_key,subject,language,first_publish_year&sort=editions&limit=\(worksLimit)&langauge=\(selectedLanguages.first ?? "eng")")
+                                "https://openlibrary.org/search.json?title=\(encoded)&fields=key,title,edition_key,author_key,author_name,cover_i,subject,language,first_publish_year,number_of_pages_median&limit=\(worksLimit)&language=\(selectedLanguages.first ?? "eng")")
         else { 
             await MainActor.run { isLoading = false }
             return 
@@ -253,34 +254,27 @@ struct BookSearchView: View {
             let searchResponse = try JSONDecoder().decode(SearchResponse.self, from: data)
             let works = searchResponse.docs
 
-            // Done with the main fetch, start streaming details
             await MainActor.run {
                 self.isLoading = false
-                if !works.isEmpty {
-                    self.isStreaming = true
-                }
-            }
-
-            try await withThrowingTaskGroup(of: FullSearchResult?.self) { group in
-                for work in works {
-                    group.addTask { await fetchCompleteBookDataByWork(for: work, languages: selectedLanguages) }
-                }
-
-                for try await result in group {
-                    if let book = result {
-                        // Append results one by one as they arrive
-                        await MainActor.run {
-                            withAnimation(.smooth) {
-                                self.searchResults.append(book)
-                            }
-                        }
+                withAnimation(.smooth) {
+                    // Instantly map search results to FullSearchResult using available data
+                    // This avoids fetching 3+ JSONs per book, making it nearly instant
+                    self.searchResults = works.map { work in
+                        let author = AuthorResponse(
+                            authorKey: work.authorKeys?.first ?? "",
+                            authorName: work.authorNames?.first ?? "Unknown Author"
+                        )
+                        
+                        let edition = EditionResponse(
+                            title: work.workTitle,
+                            key: work.editionKeys?.first ?? "",
+                            number_of_pages: work.medianPageCount,
+                            coverLink: work.coverId != nil ? "https://covers.openlibrary.org/b/id/\(work.coverId!)-L.jpg" : nil
+                        )
+                        
+                        return createBook(from: work, edition: edition, authors: [author])
                     }
                 }
-            }
-            
-            // All detail streaming finished
-            await MainActor.run {
-                self.isStreaming = false
             }
 
         } catch {

@@ -90,7 +90,19 @@ func fetchCompleteBookDataByWork(for work: WorkResponse, languages: [String]) as
             bestEdition = edition
         }
         
-        let fullWork = WorkResponse(workKey: work.workKey, workTitle: work.workTitle, description: workDetails.description, editionKeys: work.editionKeys, authorKeys: work.authorKeys, languages: work.languages, firstPublishYear: work.firstPublishYear, subjects: work.subjects)
+        let fullWork = WorkResponse(
+            workKey: work.workKey, 
+            workTitle: work.workTitle, 
+            description: workDetails.description, 
+            editionKeys: work.editionKeys, 
+            authorKeys: work.authorKeys, 
+            authorNames: work.authorNames,
+            coverId: work.coverId,
+            medianPageCount: work.medianPageCount,
+            languages: work.languages, 
+            firstPublishYear: work.firstPublishYear, 
+            subjects: work.subjects
+        )
         
         //print("-----------------------------------")
         //print(fullWork, bestEdition!, authorResponse)
@@ -153,7 +165,19 @@ func fetchCompleteBookDataByEdition(for edition: EditionResponse, languages: [St
         print("Author-Keys-----------")
         print(authorKeys)
         
-        let fullWork = WorkResponse(workKey: workDetails.workKey, workTitle: edition.title, description: workDetails.description, editionKeys: [edition.key], authorKeys: authorKeys, languages: edition.languages?.map { $0.key } ?? [], firstPublishYear: workDetails.firstPublishYear, subjects: workDetails.subjects)
+        let fullWork = WorkResponse(
+            workKey: workDetails.workKey, 
+            workTitle: edition.title, 
+            description: workDetails.description, 
+            editionKeys: [edition.key], 
+            authorKeys: authorKeys, 
+            authorNames: [authorResponse.authorName], // Derived from the fetched author
+            coverId: edition.covers?.first,
+            medianPageCount: edition.number_of_pages,
+            languages: edition.languages?.map { $0.key } ?? [], 
+            firstPublishYear: workDetails.firstPublishYear, 
+            subjects: workDetails.subjects
+        )
         
         //print("-----------------------------------")
         //print(fullWork, bestEdition!, authorResponse)

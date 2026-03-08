@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct SearchResultDetailsView: View {
-    var searchResult: FullSearchResult
+    @State var searchResult: FullSearchResult
     let addBookAction: (FullSearchResult, Status) -> Void
     var isWantToReadView: Bool = false
     @Environment(\.dismiss) var dismiss
+    
+    @State private var isLoadingDetails = false
 
     var body: some View {
         ScrollView {
@@ -85,7 +87,11 @@ struct SearchResultDetailsView: View {
                             RoundedRectangle(cornerRadius: 24)
                         )
                     
-                    if let descriptionText = searchResult.work.description?.text, !descriptionText.isEmpty {
+                    if isLoadingDetails {
+                        ProgressView()
+                            .tint(.white)
+                            .padding()
+                    } else if let descriptionText = searchResult.work.description?.text, !descriptionText.isEmpty {
                         ScrollView {
                             Text("\"\(descriptionText)\"")
                                 .fixedSize(horizontal: false, vertical: true)
@@ -106,6 +112,34 @@ struct SearchResultDetailsView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
+        }
+        .task {
+            // Fetch full details (description, etc) on demand
+            if searchResult.work.description == nil {
+                let originalCoverLink = searchResult.edition?.coverLink
+                isLoadingDetails = true
+                if var fullDetails = await fetchCompleteBookDataByWork(for: searchResult.work, languages: ["eng"]) {
+                    // Preserve the cover link from search results if the detail fetch doesn't find one
+                    if (fullDetails.edition?.coverLink == nil || fullDetails.edition?.coverLink?.isEmpty == true) && originalCoverLink != nil {
+                        var updatedEdition = fullDetails.edition
+                        updatedEdition?.coverLink = originalCoverLink
+                        
+                        fullDetails = FullSearchResult(
+                            work: fullDetails.work,
+                            edition: updatedEdition,
+                            authors: fullDetails.authors,
+                            genre: fullDetails.genre,
+                            publisher: fullDetails.publisher,
+                            languages: fullDetails.languages
+                        )
+                    }
+                    
+                    withAnimation {
+                        self.searchResult = fullDetails
+                    }
+                }
+                isLoadingDetails = false
+            }
         }
     }
 
@@ -216,6 +250,9 @@ struct SearchResultDetailsView: View {
         description: .string("This is a sample book description that explains what the book is about."),
         editionKeys: ["/books/OL67890M"],
         authorKeys: ["/authors/OL12345A"],
+        authorNames: ["Jane Doe"],
+        coverId: 123456,
+        medianPageCount: 320,
         languages: [],
         firstPublishYear: 2022,
         subjects: ["Fiction"]
@@ -233,7 +270,7 @@ struct SearchResultDetailsView: View {
     
     SearchResultDetailsView(searchResult: sampleBook, addBookAction: { book, status in
         print("Mock addBookAction — book: \(book), status: \(status)")
-    })
+    }, isWantToReadView: false)
     .databaseContext(.readWrite { AppDatabase.preview() })
 }
 

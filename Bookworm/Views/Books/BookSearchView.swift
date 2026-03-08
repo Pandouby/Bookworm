@@ -24,7 +24,7 @@ struct BookSearchView: View {
                 }
             }
         }
-        .searchable(text: $searchQuery, prompt: "Search for books")
+        .searchable(text: $searchQuery, prompt: "Search by title or ISBN")
         .textInputAutocapitalization(.never)
         .onChange(of: searchQuery) {
             handleSearchQueryChanged(searchQuery)
@@ -82,24 +82,49 @@ struct BookSearchView: View {
         @Environment(\.dismiss) var dismiss
         
         var body: some View {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(truncatedTitle(book.work.workTitle, length: 18))
-                        .font(.headline)
-                    if ((book.authors?.first) == nil) {
-                        Text(truncatedTitle(book.authors?.first?.authorName ?? "", length: 20))
+            HStack(spacing: 12) {
+                // Book Cover
+                if let coverLink = book.edition?.coverLink, !coverLink.isEmpty {
+                    AsyncImage(url: URL(string: coverLink)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color(.systemGray5)
                     }
+                    .frame(width: 45, height: 70)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(.systemGray5))
+                        Image(systemName: "book.closed")
+                            .font(.system(size: 20))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(width: 45, height: 70)
                 }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(book.work.workTitle)
+                        .font(.system(.headline, design: .rounded))
+                        .lineLimit(2)
+                    
+                    HStack(spacing: 8) {
+                        Text(book.authors?.first?.authorName ?? "Unknown Author")
+                        
+                        if let pages = book.edition?.number_of_pages, pages > 0 {
+                            Text("•")
+                            Text("\(pages) pages")
+                        }
+                    }
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                }
+                
                 Spacer()
-                VStack(alignment: .trailing) {
-                    Text(truncatedTitle(book.genre?.rawValue ?? Genre.nonClassifiable.rawValue, length: 20))
-                    if let pages = book.edition?.number_of_pages, pages > 0 {
-                        Text("p. \(pages)")
-                    }
-                }
-
             }
-            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                 Button("Owned") {
@@ -158,7 +183,56 @@ struct BookSearchView: View {
         isLoading = true
         isStreaming = false
         searchResults = []
-        await fetchWorks(for: query)
+        
+        let cleanedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Regex for ISBN-10 or ISBN-13 (allows optional hyphens)
+        let isbnRegex = "^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$"
+        
+        let isIsbn = cleanedQuery.range(of: isbnRegex, options: .regularExpression) != nil
+        
+        if isIsbn {
+            let pureNumbers = cleanedQuery.replacingOccurrences(of: "[^0-9X]", with: "", options: .regularExpression)
+            await fetchByIsbn(pureNumbers)
+        } else {
+            await fetchWorks(for: cleanedQuery)
+        }
+    }
+
+    // MARK: - FETCH BY ISBN
+    
+    private func fetchByIsbn(_ isbn: String) async {
+        guard let url = URL(string: "https://openlibrary.org/isbn/\(isbn).json") else {
+            await MainActor.run { isLoading = false }
+            return
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let edition = try JSONDecoder().decode(EditionResponse.self, from: data)
+            
+            await MainActor.run {
+                self.isLoading = false
+                self.isStreaming = true
+            }
+            
+            if let result = await fetchCompleteBookDataByEdition(for: edition, languages: selectedLanguages) {
+                await MainActor.run {
+                    withAnimation(.smooth) {
+                        self.searchResults = [result]
+                        self.isStreaming = false
+                    }
+                }
+            } else {
+                await MainActor.run { self.isStreaming = false }
+            }
+        } catch {
+            print("ISBN Search error: \(error)")
+            await MainActor.run {
+                self.isLoading = false
+                self.isStreaming = false
+            }
+        }
     }
 
     // MARK: - FETCH WORKS

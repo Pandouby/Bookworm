@@ -70,33 +70,39 @@ struct SearchResultDetailsView: View {
                     }
                 }
                 
-                if(searchResult.work.description?.text != "") {
-                    ZStack {
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        .customBlueAccent, .customBlue,
-                                    ]),
-                                    startPoint: .bottomTrailing,
-                                    endPoint: .topLeading
-                                )
+                ZStack {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    .customBlueAccent, .customBlue,
+                                ]),
+                                startPoint: .bottomTrailing,
+                                endPoint: .topLeading
                             )
-                            .clipShape(
-                                RoundedRectangle(cornerRadius: 24)
-                            )
-                        
+                        )
+                        .clipShape(
+                            RoundedRectangle(cornerRadius: 24)
+                        )
+                    
+                    if let descriptionText = searchResult.work.description?.text, !descriptionText.isEmpty {
                         ScrollView {
-                            Text("\"\(searchResult.work.description?.text ?? "")\"")
+                            Text("\"\(descriptionText)\"")
                                 .fixedSize(horizontal: false, vertical: true)
                                 .foregroundStyle(.white)
                         }
                         .frame(maxWidth: .infinity, maxHeight: 250)
                         .padding()
+                    } else {
+                        Text("No description available")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .italic()
+                            .padding()
                     }
-                    .frame(maxWidth: .infinity, maxHeight: 250)
-                    .shadow(color: .widgetShadow, radius: 5)
                 }
+                .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 250)
+                .shadow(color: .widgetShadow, radius: 5)
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -120,42 +126,48 @@ struct SearchResultDetailsView: View {
                     RoundedRectangle(cornerRadius: 24)
                 )
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let pages = searchResult.edition?.number_of_pages, pages > 0 {
+                        HStack(spacing: 8) {
+                            Image(systemName: "book.pages")
+                            Text("\(pages) Pages")
+                        }
+                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    }
                     
-                if(searchResult.edition?.number_of_pages != nil) {
-                    Text("\(searchResult.edition?.number_of_pages ?? 0) ")
-                        .bold()
-                        .foregroundStyle(.white)
-                    + Text("Pages")
-                        .foregroundStyle(.white)
+                    if let date = searchResult.edition?.publish_date, !date.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "calendar")
+                            Text("Published: \(date)")
+                        }
+                        .font(.system(.caption, design: .rounded, weight: .medium))
+                    }
+                    
+                    if let publisher = searchResult.edition?.publishers?.first, !publisher.isEmpty {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "building.2")
+                            Text(publisher)
+                        }
+                        .font(.system(.caption, design: .rounded, weight: .medium))
+                        .lineLimit(2)
+                    }
                 }
-                        
-                if(searchResult.genre != nil) {
-                    Text("Genre")
-                        .foregroundStyle(.white)
-                    Text(searchResult.genre?.rawValue ?? Genre.nonClassifiable.rawValue)
-                        .foregroundStyle(.white)
-                        .bold()
-                }
-
-                if(searchResult.edition?.publish_date != "") {
-                    Text("Published\n")
-                        .foregroundStyle(.white)
-                    + Text("\(searchResult.edition?.publish_date ?? "")")
-                        .foregroundStyle(.white)
-                        .bold()
-                }
+                .foregroundStyle(.white)
                 
-                if(searchResult.edition?.publishers?.first != "") {
-                    Text("Published by ")
+                Spacer(minLength: 8)
+                
+                // Genre Pill at the bottom
+                if let genre = searchResult.genre {
+                    Text(genre.rawValue)
+                        .font(.system(.caption, design: .rounded, weight: .bold))
                         .foregroundStyle(.white)
-                    + Text("\(searchResult.edition?.publishers?.first ?? "")")
-                        .foregroundStyle(.white)
-                        .bold()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color.white.opacity(0.2)))
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
+            .padding(20)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .shadow(color: .widgetShadow, radius: 5)

@@ -239,91 +239,91 @@ struct AppDatabase {
         let sampleBooks = [
             CompleteBookData(
                 work: Work(workKey: "W1", workTitle: "The Hobbit", subtitle: nil, workDescription: "A fantasy novel.", firstPublishYear: 1937),
-                edition: Edition(editionKey: "E1", workKey: "W1", editionTitle: "The Hobbit", numberOfPages: 310, isbn13: "978-0-395-07122-1"),
+                edition: Edition(editionKey: "E1", workKey: "W1", editionTitle: "The Hobbit", numberOfPages: 310, isbn13: "978-0-395-07122-1", cover: "https://covers.openlibrary.org/b/id/12818862-L.jpg"),
                 authors: [Author(authorKey: "A1", authorName: "J.R.R. Tolkien")],
                 genres: [.fiction, .juvenile],
                 userDetails: UserBookDetails(editionKey: "E1", addedDate: date(40), userRating: 5, isFavorite: true, status: .done, startDate: date(40), endDate: date(30), notes: "A classic!")
             ),
             CompleteBookData(
                 work: Work(workKey: "W2", workTitle: "Dune", subtitle: nil, workDescription: "A science fiction novel.", firstPublishYear: 1965),
-                edition: Edition(editionKey: "E2", workKey: "W2", editionTitle: "Dune", numberOfPages: 412, isbn13: "978-0-441-01359-3"),
+                edition: Edition(editionKey: "E2", workKey: "W2", editionTitle: "Dune", numberOfPages: 412, isbn13: "978-0-441-01359-3", cover: "https://covers.openlibrary.org/b/id/10121345-L.jpg"),
                 authors: [Author(authorKey: "A2", authorName: "Frank Herbert")],
                 genres: [.fiction, .science],
                 userDetails: UserBookDetails(editionKey: "E2", addedDate: date(25), userRating: 4, isFavorite: false, status: .done, startDate: date(25), endDate: date(15), notes: "Must read soon.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W3", workTitle: "The Great Gatsby", subtitle: nil, workDescription: "A classic American novel.", firstPublishYear: 1925),
-                edition: Edition(editionKey: "E3", workKey: "W3", editionTitle: "The Great Gatsby", numberOfPages: 180, isbn13: "978-0-7432-7356-5"),
+                edition: Edition(editionKey: "E3", workKey: "W3", editionTitle: "The Great Gatsby", numberOfPages: 180, isbn13: "978-0-7432-7356-5", cover: "https://covers.openlibrary.org/b/id/12818817-L.jpg"),
                 authors: [Author(authorKey: "A3", authorName: "F. Scott Fitzgerald")],
                 genres: [.fiction],
                 userDetails: UserBookDetails(editionKey: "E3", addedDate: date(60), userRating: 4.5, isFavorite: true, status: .done, startDate: date(60), endDate: date(55), notes: "Great read.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W4", workTitle: "The Shining", subtitle: nil, workDescription: "A horror novel.", firstPublishYear: 1977),
-                edition: Edition(editionKey: "E4", workKey: "W4", editionTitle: "The Shining", numberOfPages: 447, isbn13: "978-0-307-74365-7"),
+                edition: Edition(editionKey: "E4", workKey: "W4", editionTitle: "The Shining", numberOfPages: 447, isbn13: "978-0-307-74365-7", cover: "https://covers.openlibrary.org/b/id/12853785-L.jpg"),
                 authors: [Author(authorKey: "A4", authorName: "Stephen King")],
                 genres: [.fiction],
                 userDetails: UserBookDetails(editionKey: "E4", addedDate: date(5), userRating: 3.5, isFavorite: false, status: .inProgress, startDate: date(5), endDate: today, notes: "Plan to read.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W5", workTitle: "1984", subtitle: nil, workDescription: "A dystopian social science fiction novel.", firstPublishYear: 1949),
-                edition: Edition(editionKey: "E5", workKey: "W5", editionTitle: "1984", numberOfPages: 328, isbn13: "978-0-452-28423-4"),
+                edition: Edition(editionKey: "E5", workKey: "W5", editionTitle: "1984", numberOfPages: 328, isbn13: "978-0-452-28423-4", cover: "https://covers.openlibrary.org/b/id/12818862-L.jpg"),
                 authors: [Author(authorKey: "A5", authorName: "George Orwell")],
                 genres: [.fiction, .politicalScience],
                 userDetails: UserBookDetails(editionKey: "E5", addedDate: date(12), userRating: 5, isFavorite: true, status: .done, startDate: date(12), endDate: date(2), notes: "Powerful book.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W6", workTitle: "To Kill a Mockingbird", subtitle: nil, workDescription: "A novel about racial injustice.", firstPublishYear: 1960),
-                edition: Edition(editionKey: "E6", workKey: "W6", editionTitle: "To Kill a Mockingbird", numberOfPages: 281, isbn13: "978-0-06-112008-4"),
+                edition: Edition(editionKey: "E6", workKey: "W6", editionTitle: "To Kill a Mockingbird", numberOfPages: 281, isbn13: "978-0-06-112008-4", cover: "https://covers.openlibrary.org/b/id/8267232-L.jpg"),
                 authors: [Author(authorKey: "A6", authorName: "Harper Lee")],
                 genres: [.fiction, .law, .socialScience],
                 userDetails: UserBookDetails(editionKey: "E6", addedDate: date(100), userRating: 5, isFavorite: true, status: .done, startDate: date(100), endDate: date(90), notes: "Absolute masterpiece.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W7", workTitle: "Brave New World", subtitle: nil, workDescription: "A dystopian novel.", firstPublishYear: 1932),
-                edition: Edition(editionKey: "E7", workKey: "W7", editionTitle: "Brave New World", numberOfPages: 268, isbn13: "978-0-06-085052-4"),
+                edition: Edition(editionKey: "E7", workKey: "W7", editionTitle: "Brave New World", numberOfPages: 268, isbn13: "978-0-06-085052-4", cover: "https://covers.openlibrary.org/b/id/12818862-L.jpg"),
                 authors: [Author(authorKey: "A7", authorName: "Aldous Huxley")],
                 genres: [.fiction, .science, .politicalScience, .socialScience],
                 userDetails: UserBookDetails(editionKey: "E7", addedDate: date(15), userRating: 4, isFavorite: false, status: .done, startDate: date(15), endDate: date(8), notes: "Interesting perspective.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W11", workTitle: "Project Hail Mary", subtitle: nil, workDescription: "Survival story.", firstPublishYear: 2021),
-                edition: Edition(editionKey: "E11", workKey: "W11", editionTitle: "Project Hail Mary", numberOfPages: 476, isbn13: "9780593135204"),
+                edition: Edition(editionKey: "E11", workKey: "W11", editionTitle: "Project Hail Mary", numberOfPages: 476, isbn13: "9780593135204", cover: "https://covers.openlibrary.org/b/id/10574235-L.jpg"),
                 authors: [Author(authorKey: "A11", authorName: "Andy Weir")],
                 genres: [.fiction, .science],
                 userDetails: UserBookDetails(editionKey: "E11", addedDate: date(8), userRating: 5, isFavorite: true, status: .done, startDate: date(8), endDate: today, notes: "Amazing science!")
             ),
             CompleteBookData(
                 work: Work(workKey: "W12", workTitle: "Atomic Habits", subtitle: nil, workDescription: "Self-help book.", firstPublishYear: 2018),
-                edition: Edition(editionKey: "E12", workKey: "W12", editionTitle: "Atomic Habits", numberOfPages: 320, isbn13: "9780735211292"),
+                edition: Edition(editionKey: "E12", workKey: "W12", editionTitle: "Atomic Habits", numberOfPages: 320, isbn13: "9780735211292", cover: "https://covers.openlibrary.org/b/id/12853785-L.jpg"),
                 authors: [Author(authorKey: "A12", authorName: "James Clear")],
                 genres: [.selfHelp, .psychology],
                 userDetails: UserBookDetails(editionKey: "E12", addedDate: date(20), userRating: 4.5, isFavorite: false, status: .done, startDate: date(20), endDate: date(18), notes: "Quick but impactful.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W13", workTitle: "Deep Work", subtitle: nil, workDescription: "Focus rules.", firstPublishYear: 2016),
-                edition: Edition(editionKey: "E13", workKey: "W13", editionTitle: "Deep Work", numberOfPages: 304, isbn13: "9781455586691"),
+                edition: Edition(editionKey: "E13", workKey: "W13", editionTitle: "Deep Work", numberOfPages: 304, isbn13: "9781455586691", cover: "https://covers.openlibrary.org/b/id/8231991-L.jpg"),
                 authors: [Author(authorKey: "A13", authorName: "Cal Newport")],
                 genres: [.businessEconomics, .psychology],
                 userDetails: UserBookDetails(editionKey: "E13", addedDate: date(35), userRating: 4, isFavorite: false, status: .done, startDate: date(35), endDate: date(28), notes: "Necessary for today.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W8", workTitle: "The Catcher in the Rye", subtitle: nil, workDescription: "A story of teenage rebellion.", firstPublishYear: 1951),
-                edition: Edition(editionKey: "E8", workKey: "W8", editionTitle: "The Catcher in the Rye", numberOfPages: 234, isbn13: "978-0-316-76948-8"),
+                edition: Edition(editionKey: "E8", workKey: "W8", editionTitle: "The Catcher in the Rye", numberOfPages: 234, isbn13: "978-0-316-76948-8", cover: "https://covers.openlibrary.org/b/id/8231991-L.jpg"),
                 authors: [Author(authorKey: "A8", authorName: "J.D. Salinger")],
                 genres: [.fiction, .juvenile, .psychology],
                 userDetails: UserBookDetails(editionKey: "E8", addedDate: date(2), userRating: 3.5, isFavorite: false, status: .toDo, startDate: today, endDate: today, notes: "Classic coming-of-age.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W9", workTitle: "Harry Potter and the Philosopher's Stone", subtitle: nil, workDescription: "The first book in the Harry Potter series.", firstPublishYear: 1997),
-                edition: Edition(editionKey: "E9", workKey: "W9", editionTitle: "Harry Potter and the Philosopher's Stone", numberOfPages: 223, isbn13: "978-0-7475-3269-9"),
+                edition: Edition(editionKey: "E9", workKey: "W9", editionTitle: "Harry Potter and the Philosopher's Stone", numberOfPages: 223, isbn13: "978-0-7475-3269-9", cover: "https://covers.openlibrary.org/b/id/10521270-L.jpg"),
                 authors: [Author(authorKey: "A9", authorName: "J.K. Rowling")],
                 genres: [.fiction, .juvenile],
                 userDetails: UserBookDetails(editionKey: "E9", addedDate: date(365), userRating: 5, isFavorite: true, status: .done, startDate: date(365), endDate: date(358), notes: "The magic starts here.")
             ),
             CompleteBookData(
                 work: Work(workKey: "W10", workTitle: "A Brief History of Time", subtitle: nil, workDescription: "A popular-science book.", firstPublishYear: 1988),
-                edition: Edition(editionKey: "E10", workKey: "W10", editionTitle: "A Brief History of Time", numberOfPages: 212, isbn13: "978-0-553-38016-3"),
+                edition: Edition(editionKey: "E10", workKey: "W10", editionTitle: "A Brief History of Time", numberOfPages: 212, isbn13: "978-0-553-38016-3", cover: "https://covers.openlibrary.org/b/id/12853785-L.jpg"),
                 authors: [Author(authorKey: "A10", authorName: "Stephen Hawking")],
                 genres: [.science, .history, .philosophy],
                 userDetails: UserBookDetails(editionKey: "E10", addedDate: today, userRating: 4.5, isFavorite: false, status: .wantToRead, startDate: today, endDate: today, notes: "Excited to learn.")

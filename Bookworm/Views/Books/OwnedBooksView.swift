@@ -18,6 +18,13 @@ struct OwnedBooksView: View {
     var ownedBooks: [CompleteBookDataViewModel] {
         completeBooks
             .map { .init(from: $0) }
+            .filter { book in
+                let matchesFavorite = !filterFavoritesOnly || book.isFavorite
+                let matchesStatus = selectedStatusFilter == nil || book.status == selectedStatusFilter
+                let matchesGenre = selectedGenreFilter == nil || book.genre == selectedGenreFilter
+                
+                return matchesFavorite && matchesStatus && matchesGenre
+            }
             .sorted()
     }
 
@@ -25,6 +32,11 @@ struct OwnedBooksView: View {
     @State private var scannedCode: String?
     @State private var showBookNotFoundAlert = false
     @State private var selectedLanguages = ["eng"]
+    
+    // Filter State
+    @State private var filterFavoritesOnly = false
+    @State private var selectedStatusFilter: Status? = nil
+    @State private var selectedGenreFilter: Genre? = nil
     
     @State private var showFavoriteDeleteDialog = false
     @State private var favoriteBookToDelete: CompleteBookDataViewModel?
@@ -38,9 +50,28 @@ struct OwnedBooksView: View {
     var isSearching: Bool {
         return !searchQuery.isEmpty
     }
+    
+    var isFiltering: Bool {
+        filterFavoritesOnly || selectedStatusFilter != nil || selectedGenreFilter != nil
+    }
 
     var body: some View {        
         List {
+            if isFiltering {
+                Section {
+                    Button(action: {
+                        withAnimation {
+                            filterFavoritesOnly = false
+                            selectedStatusFilter = nil
+                            selectedGenreFilter = nil
+                        }
+                    }) {
+                        Label("Clear all filters", systemImage: "xmark.circle")
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
+            
             ForEach(isSearching ? searchResults: ownedBooks) { book in
                 NavigationLink(destination: BookDetailsView(book: book)) {
                     HStack {
@@ -83,18 +114,6 @@ struct OwnedBooksView: View {
             .onDelete { offsets in
                 handleDelete(offsets: offsets)
             }
-            // Auto navigate to newly added books
-            /*.navigationDestination(
-                 isPresented: Binding(
-                 get: { selectedBook != nil },  // Navigate if a book is selected
-                 set: { if !$0 { selectedBook = nil } }  // Clear selection after navigating
-                 )
-                 ) {
-                 if let book = selectedBook {
-                 BookDetailsView(book: book)
-                 }
-                 }
-                 */
         }
         .confirmationDialog(
             "Delete Favorite Book?",
@@ -122,19 +141,64 @@ struct OwnedBooksView: View {
             Text("This book is marked as favorite. Are you sure you want to delete it?")
         }
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                    Toggle(isOn: $filterFavoritesOnly) {
+                        Label("Favorites Only", systemImage: "heart.fill")
+                    }
+                    
+                    Divider()
+                    
+                    Menu {
+                        Button("All") { selectedStatusFilter = nil }
+                        ForEach(Status.allCases.filter { $0 != .wantToRead }) { status in
+                            Button {
+                                selectedStatusFilter = status
+                            } label: {
+                                HStack {
+                                    Text(status.rawValue)
+                                    if selectedStatusFilter == status {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Filter by Status", systemImage: "checklist")
+                    }
+                    
+                    Menu {
+                        Button("All") { selectedGenreFilter = nil }
+                        ForEach(Genre.allCases) { genre in
+                            Button {
+                                selectedGenreFilter = genre
+                            } label: {
+                                HStack {
+                                    Text(genre.rawValue)
+                                    if selectedGenreFilter == genre {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Filter by Genre", systemImage: "books.vertical")
+                    }
+                    
+                } label: {
+                    Image(systemName: isFiltering ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                        .foregroundColor(isFiltering ? .accentColor : .primary)
+                }
+
                 Button("Scan new Book", systemImage: "barcode.viewfinder") {
                     isShowingScanner = true
                 }
-            }
-            ToolbarItem {
+                
                 Button(action: addItem) {
                     Label("Add Book", systemImage: "plus")
                 }
             }
         }
-        // Turns of the opaque background of the toolbar when content scrolls below it
-        //.toolbarBackground(.hidden, for: .navigationBar)
         .alert(isPresented: $showBookNotFoundAlert) {
             Alert(
                 title: Text("Book could not be found"),
@@ -250,12 +314,6 @@ struct OwnedBooksView: View {
     }
 
     public func getCompleteBookDataByIsbn(isbn: String) async {
-        /*
-         // Google Book Api
-        guard let url = URL(string: "https://www.googleapis.com/books/v1/volumes?q=isbn:\(isbn)"
-        )
-         */
-        
         guard let url = URL(string: "https://openlibrary.org/isbn/\(isbn).json")
         else { return }
         do {

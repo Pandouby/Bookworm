@@ -156,57 +156,88 @@ struct BooksView: View {
                             RoundedRectangle(cornerRadius: 24)
                         )
 
-                        VStack(alignment: .leading) {
-                            Image(systemName: "book.fill")
-                                .foregroundColor(.white)
-                                .opacity(0.6)
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "book.fill")
+                                    .foregroundColor(.white)
+                                    .opacity(0.6)
 
-                            Text("Currently reading")
-                                .font(.title3)
-                                .foregroundStyle(.white)
-                                .bold()
-                                .padding(.top, 5)
+                                Text("Currently reading")
+                                    .font(.system(.title3, design: .rounded, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
 
                             if let currentBook = currentBook {
-                                HStack(alignment: .top) {
-                                    VStack(alignment: .leading) {
+                                HStack(alignment: .top, spacing: 16) {
+                                    // Cover Image or Placeholder
+                                    if let cover = currentBook.edition.cover, let url = URL(string: cover) {
+                                        AsyncImage(url: url) { image in
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                        } placeholder: {
+                                            Color.white.opacity(0.1)
+                                        }
+                                        .frame(width: 80, height: 120)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                        .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+                                    } else {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.white.opacity(0.15))
+                                            Image(systemName: "book.closed.fill")
+                                                .font(.system(size: 30))
+                                                .foregroundColor(.white.opacity(0.4))
+                                        }
+                                        .frame(width: 80, height: 120)
+                                    }
 
+                                    // Book Details
+                                    VStack(alignment: .leading, spacing: 4) {
                                         Text(currentBook.edition.editionTitle ?? currentBook.work.workTitle)
+                                            .font(.system(.headline, design: .rounded))
                                             .foregroundStyle(.white)
-                                            .bold()
+                                            .lineLimit(2)
 
                                         Text("By \(currentBook.authors.first?.authorName ?? "Unknown Author")")
+                                            .font(.system(.subheadline, design: .rounded, weight: .medium))
                                             .foregroundStyle(.white)
                                             .opacity(0.8)
-
-                                        Text(
-                                            "Started at \(dateStringFormatter(date: currentBook.userDetails.startDate, formattingString: "MMMM dd"))"
-                                        )
+                                            .lineLimit(1)
+                                        
+                                        Spacer()
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Started: \(currentBook.userDetails.startDate.formattedEU())")
+                                            Text(currentBook.genres.first?.rawValue ?? "N/A")
+                                            Text("\(currentBook.edition.numberOfPages ?? 0) pages")
+                                        }
+                                        .font(.system(.caption, design: .rounded))
+                                        .foregroundStyle(.white)
+                                        .opacity(0.7)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(.bottom, 5)
+                            } else {
+                                HStack {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.white.opacity(0.15))
+                                        Image(systemName: "book.closed.fill")
+                                            .font(.system(size: 30))
+                                            .foregroundColor(.white.opacity(0.4))
+                                    }
+                                    .frame(width: 80, height: 120)
+                                    
+                                    Text("No book in progress")
+                                        .font(.system(.subheadline, design: .rounded))
                                         .foregroundStyle(.white)
                                         .opacity(0.8)
-
-                                        Spacer()
-                                    }
-
+                                        .padding(.leading, 8)
+                                    
                                     Spacer()
-
-                                    VStack(alignment: .trailing) {
-                                        Text(currentBook.genres.first?.rawValue ?? "N/A")
-                                            .foregroundStyle(.white)
-                                            .opacity(0.8)
-
-                                        Text("\(currentBook.edition.numberOfPages ?? 0) pages")
-                                            .foregroundStyle(.white)
-                                            .opacity(0.8)
-                                        Spacer()
-                                    }
                                 }
-                                .frame(maxWidth: .infinity)
-                            } else {
-                                Text("No book in progress")
-                                    .foregroundStyle(.white)
-                                    .opacity(0.8)
-                                Spacer()
                             }
                         }
                         .padding()

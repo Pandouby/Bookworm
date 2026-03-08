@@ -26,3 +26,11 @@ func dateStringFormatter(date: Date, formattingString: String, isUppercase: Bool
     
     return formatter.string(from: date)
 }
+
+extension Date {
+    func formattedEU() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy"
+        return formatter.string(from: self)
+    }
+}

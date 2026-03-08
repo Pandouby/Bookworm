@@ -38,18 +38,27 @@ struct SearchResultDetailsView: View {
                                     RoundedRectangle(cornerRadius: 24)
                                 )
                             
-                            AsyncImage(
-                                url: URL(
-                                    string: searchResult.edition?.coverLink ?? ""
-                                )
-                            ) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                            } placeholder: {
-                                ProgressView()
+                            if let coverLink = searchResult.edition?.coverLink, !coverLink.isEmpty {
+                                AsyncImage(
+                                    url: URL(string: coverLink)
+                                ) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFit()
+                                } placeholder: {
+                                    ProgressView()
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                            } else {
+                                // Placeholder for missing cover
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .fill(Color.white.opacity(0.15))
+                                    Image(systemName: "book.closed.fill")
+                                        .font(.system(size: 60))
+                                        .foregroundColor(.white.opacity(0.4))
+                                }
                             }
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
                         }
                         .frame(minHeight: 250)
                         .shadow(color: .widgetShadow, radius: 5)

@@ -7,6 +7,7 @@ struct BookSearchView: View {
     @State private var searchQuery = ""
     @State private var searchResults: [FullSearchResult] = []
     @State private var isLoading = false
+    @State private var isStreaming = false
     @State private var selectedLanguages = ["eng"]
 
     @State private var currentTask: Task<Void, Never>?
@@ -15,12 +16,12 @@ struct BookSearchView: View {
 
     var body: some View {
         NavigationStack {
-            if isLoading {
-                loadingView
-            } else if searchResults.isEmpty && !searchQuery.isEmpty {
-                noResultsView
-            } else {
-                resultsListView
+            ZStack {
+                if !searchResults.isEmpty || isLoading || isStreaming {
+                    resultsListView
+                } else if !searchQuery.isEmpty && !isLoading && !isStreaming {
+                    noResultsView
+                }
             }
         }
         .searchable(text: $searchQuery, prompt: "Search for books")
@@ -35,21 +36,6 @@ struct BookSearchView: View {
     }
     
     // MARK: - Subviews
-    
-    private var loadingView: some View {
-        VStack {
-            /*
-            ProgressView("Searching...")
-                .progressViewStyle(CircularProgressViewStyle())
-                .scaleEffect(1.5)
-             */
-            
-            Image(systemName: "square.stack.3d.up")
-                .symbolEffect(.variableColor.iterative, options: .repeating.speed(3))
-                .font(.largeTitle)
-                .scaleEffect(1.5)
-        }
-    }
     
     private var noResultsView: some View {
         VStack {
@@ -72,6 +58,18 @@ struct BookSearchView: View {
                 ) {
                     BookRowView(book: book, addBookAction: addBookToLibrary)
                 }
+            }
+            
+            if isStreaming {
+                HStack {
+                    Spacer()
+                    Image(systemName: "square.stack.3d.up")
+                        .symbolEffect(.variableColor.iterative, options: .repeating.speed(3))
+                        .font(.title2)
+                        .padding()
+                    Spacer()
+                }
+                .listRowSeparator(.hidden)
             }
         }
     }
@@ -139,6 +137,8 @@ struct BookSearchView: View {
 
         if query.isEmpty || query.count < 3 {
             searchResults = []
+            isLoading = false
+            isStreaming = false
             return
         }
 
@@ -156,8 +156,8 @@ struct BookSearchView: View {
     @MainActor
     private func runSearch(_ query: String) async {
         isLoading = true
-        defer { isLoading = false }
-
+        isStreaming = false
+        searchResults = []
         await fetchWorks(for: query)
     }
 
@@ -169,32 +169,52 @@ struct BookSearchView: View {
 
         guard let url = URL(string:
                                 "https://openlibrary.org/search.json?title=\(encoded)&fields=key,title,subtitle,edition_key,author_key,subject,language,first_publish_year&sort=editions&limit=\(worksLimit)&langauge=\(selectedLanguages.first ?? "eng")")
-        else { return }
+        else { 
+            await MainActor.run { isLoading = false }
+            return 
+        }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let searchResponse = try JSONDecoder().decode(SearchResponse.self, from: data)
             let works = searchResponse.docs
 
-            var books: [FullSearchResult] = []
+            // Done with the main fetch, start streaming details
+            await MainActor.run {
+                self.isLoading = false
+                if !works.isEmpty {
+                    self.isStreaming = true
+                }
+            }
 
             try await withThrowingTaskGroup(of: FullSearchResult?.self) { group in
                 for work in works {
                     group.addTask { await fetchCompleteBookDataByWork(for: work, languages: selectedLanguages) }
-                    //print(work)
                 }
 
                 for try await result in group {
-                    if let book = result { books.append(book) }
+                    if let book = result {
+                        // Append results one by one as they arrive
+                        await MainActor.run {
+                            withAnimation(.smooth) {
+                                self.searchResults.append(book)
+                            }
+                        }
+                    }
                 }
             }
-
+            
+            // All detail streaming finished
             await MainActor.run {
-                self.searchResults = books
+                self.isStreaming = false
             }
 
         } catch {
             print("Search error: \(error)")
+            await MainActor.run { 
+                self.isLoading = false
+                self.isStreaming = false
+            }
         }
     }
 }

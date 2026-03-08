@@ -178,7 +178,7 @@ struct BooksView: View {
                                         } placeholder: {
                                             Color.white.opacity(0.1)
                                         }
-                                        .frame(width: 80, height: 120)
+                                        .frame(width: 94, height: 140)
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                         .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
                                     } else {
@@ -189,7 +189,7 @@ struct BooksView: View {
                                                 .font(.system(size: 30))
                                                 .foregroundColor(.white.opacity(0.4))
                                         }
-                                        .frame(width: 80, height: 120)
+                                        .frame(width: 94, height: 140)
                                     }
 
                                     // Book Details
@@ -198,6 +198,9 @@ struct BooksView: View {
                                             .font(.system(.headline, design: .rounded))
                                             .foregroundStyle(.white)
                                             .lineLimit(2)
+                                            .truncationMode(.tail)
+                                            .multilineTextAlignment(.leading)
+                                            .fixedSize(horizontal: false, vertical: true)
 
                                         Text("By \(currentBook.authors.first?.authorName ?? "Unknown Author")")
                                             .font(.system(.subheadline, design: .rounded, weight: .medium))
@@ -207,14 +210,25 @@ struct BooksView: View {
                                         
                                         Spacer()
                                         
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Started: \(currentBook.userDetails.startDate.formattedEU())")
-                                            Text(currentBook.genres.first?.rawValue ?? "N/A")
-                                            Text("\(currentBook.edition.numberOfPages ?? 0) pages")
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("Started: \(currentBook.userDetails.startDate.formattedEU())")
+                                                Text("\(currentBook.edition.numberOfPages ?? 0) pages")
+                                            }
+                                            .font(.system(.caption, design: .rounded))
+                                            .foregroundStyle(.white)
+                                            .opacity(0.7)
+                                            
+                                            // Genre Pill at the bottom
+                                            if let firstGenre = currentBook.genres.first {
+                                                Text(firstGenre.rawValue)
+                                                    .font(.system(.caption2, design: .rounded, weight: .bold))
+                                                    .foregroundStyle(.white)
+                                                    .padding(.horizontal, 10)
+                                                    .padding(.vertical, 4)
+                                                    .background(Capsule().fill(Color.white.opacity(0.2)))
+                                            }
                                         }
-                                        .font(.system(.caption, design: .rounded))
-                                        .foregroundStyle(.white)
-                                        .opacity(0.7)
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }
@@ -228,7 +242,7 @@ struct BooksView: View {
                                             .font(.system(size: 30))
                                             .foregroundColor(.white.opacity(0.4))
                                     }
-                                    .frame(width: 80, height: 120)
+                                    .frame(width: 94, height: 140)
                                     
                                     Text("No book in progress")
                                         .font(.system(.subheadline, design: .rounded))

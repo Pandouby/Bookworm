@@ -28,9 +28,7 @@ func dateStringFormatter(date: Date, formattingString: String, isUppercase: Bool
 }
 
 extension Date {
-    func formattedEU() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yyyy"
-        return formatter.string(from: self)
+    func formattedLocale() -> String {
+        return self.formatted(.dateTime.day().month().year())
     }
 }

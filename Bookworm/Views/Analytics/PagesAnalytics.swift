@@ -309,13 +309,11 @@ struct PagesAnalytics: View {
     }
     
     private func formatSelectedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
         if timeRange == .year {
-            formatter.dateFormat = "MMMM yyyy"
+            return date.formatted(.dateTime.month().year())
         } else {
-            formatter.dateStyle = .medium
+            return date.formatted(.dateTime.day().month().year())
         }
-        return formatter.string(from: date)
     }
     
     private func isSamePeriod(_ d1: Date, _ d2: Date) -> Bool {

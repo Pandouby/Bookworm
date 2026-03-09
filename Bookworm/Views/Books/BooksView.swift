@@ -212,7 +212,7 @@ struct BooksView: View {
                                         
                                         VStack(alignment: .leading, spacing: 8) {
                                             VStack(alignment: .leading, spacing: 2) {
-                                                Text("Started: \(currentBook.userDetails.startDate.formattedEU())")
+                                                Text("Started: \(currentBook.userDetails.startDate.formattedLocale())")
                                                 Text("\(currentBook.edition.numberOfPages ?? 0) pages")
                                             }
                                             .font(.system(.caption, design: .rounded))

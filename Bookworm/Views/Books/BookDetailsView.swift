@@ -125,12 +125,7 @@ struct BookDetailsView: View {
                                 )
                                 .labelsHidden()
                             } label: {
-                                HStack {
-                                    Text("Started")
-                                    Spacer()
-                                    Text(book.startDate.formattedEU())
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("Started")
                             }
                             .onChange(of: book.startDate) {
                                 saveData(book: book)
@@ -143,12 +138,7 @@ struct BookDetailsView: View {
                                 )
                                 .labelsHidden()
                             } label: {
-                                HStack {
-                                    Text("Finished")
-                                    Spacer()
-                                    Text(book.endDate.formattedEU())
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("Finished")
                             }
                             .onChange(of: book.endDate) {
                                 saveData(book: book)

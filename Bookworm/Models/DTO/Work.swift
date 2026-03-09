@@ -84,17 +84,18 @@ extension Work {
 }
 
 struct WorkResponse: Codable {
-    let workKey: String
-    let workTitle: String
-    var description: DescriptionValue?
-    let editionKeys: [String]?
-    let authorKeys: [String]?
-    let authorNames: [String]?
-    let coverId: Int?
-    let medianPageCount: Int?
-    let languages: [String]?
-    let firstPublishYear: Int?
-    let subjects: [String]?
+    var workKey: String
+    var workTitle: String
+    var description: DescriptionValue? = nil
+    var editionKeys: [String]? = nil
+    var authorKeys: [String]? = nil
+    var authorNames: [String]? = nil
+    var coverId: Int? = nil
+    var coverEditionKey: String? = nil
+    var medianPageCount: Int? = nil
+    var languages: [String]? = nil
+    var firstPublishYear: Int? = nil
+    var subjects: [String]? = nil
     
     enum CodingKeys: String, CodingKey {
         case workKey = "key"
@@ -104,6 +105,7 @@ struct WorkResponse: Codable {
         case authorKeys = "author_key"
         case authorNames = "author_name"
         case coverId = "cover_i"
+        case coverEditionKey = "cover_edition_key"
         case medianPageCount = "number_of_pages_median"
         case languages = "language"
         case firstPublishYear = "first_publish_year"

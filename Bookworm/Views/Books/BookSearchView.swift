@@ -243,7 +243,7 @@ struct BookSearchView: View {
 
         // Optimized URL: Fixed typo 'langauge', changed sort to default (relevance), and added fields for immediate display
         guard let url = URL(string:
-                                "https://openlibrary.org/search.json?title=\(encoded)&fields=key,title,edition_key,author_key,author_name,cover_i,subject,language,first_publish_year,number_of_pages_median&limit=\(worksLimit)&language=\(selectedLanguages.first ?? "eng")")
+                                "https://openlibrary.org/search.json?title=\(encoded)&fields=key,title,edition_key,author_key,author_name,cover_i,cover_edition_key,subject,language,first_publish_year,number_of_pages_median&limit=\(worksLimit)&language=\(selectedLanguages.first ?? "eng")")
         else { 
             await MainActor.run { isLoading = false }
             return 

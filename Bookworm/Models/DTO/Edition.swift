@@ -121,13 +121,13 @@ struct EditionListResponse: Codable {
 struct EditionResponse: Codable {
     var title: String
     var key: String
-    var works: [WorkKeyElement]?
-    var number_of_pages: Int?
-    var isbn_13: [String]?
-    var isbn_10: [String]?
-    var publish_date: String?
-    var languages: [LanguageResponse]?
-    var covers: [Int]?
-    var coverLink: String?
-    var publishers: [String]?
+    var works: [WorkKeyElement]? = nil
+    var number_of_pages: Int? = nil
+    var isbn_13: [String]? = nil
+    var isbn_10: [String]? = nil
+    var publish_date: String? = nil
+    var languages: [LanguageResponse]? = nil
+    var covers: [Int]? = nil
+    var coverLink: String? = nil
+    var publishers: [String]? = nil
 }

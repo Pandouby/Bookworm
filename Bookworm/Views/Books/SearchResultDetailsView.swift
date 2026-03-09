@@ -34,51 +34,42 @@ struct SearchResultDetailsView: View {
 
                 
                 HStack(spacing: 15) {
+                    VStack {
+                        searchResultDetailWidget
+                    }
                     
-                    if initialResult.edition?.coverLink != nil { // Use initial
+                    ZStack {
+                        Rectangle()
+                            .fill(.widget)
+                            .clipShape(
+                                RoundedRectangle(cornerRadius: 24)
+                            )
                         
-                        VStack {
-                            searchResultDetailWidget
-                        }
-                        
-                        ZStack {
-                            Rectangle()
-                                .fill(.widget)
-                                .clipShape(
-                                    RoundedRectangle(cornerRadius: 24)
-                                )
-                            
-                            // Always use initial cover to prevent flickering/changing
-                            if let coverLink = initialResult.edition?.coverLink, !coverLink.isEmpty {
-                                AsyncImage(
-                                    url: URL(string: coverLink)
-                                ) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFit()
-                                } placeholder: {
-                                    ProgressView()
-                                }
-                                .clipShape(RoundedRectangle(cornerRadius: 24))
-                            } else {
-                                // Placeholder for missing cover
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .fill(Color.white.opacity(0.15))
-                                    Image(systemName: "book.closed.fill")
-                                        .font(.system(size: 60))
-                                        .foregroundColor(.white.opacity(0.4))
-                                }
+                        // Use searchResult (stateful) to allow upgrading cover
+                        if let coverLink = searchResult.edition?.coverLink, !coverLink.isEmpty {
+                            AsyncImage(
+                                url: URL(string: coverLink)
+                            ) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                            } placeholder: {
+                                ProgressView()
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        } else {
+                            // Placeholder for missing cover
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 24)
+                                    .fill(Color.white.opacity(0.15))
+                                Image(systemName: "book.closed.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.white.opacity(0.4))
                             }
                         }
-                        .frame(minHeight: 250)
-                        .shadow(color: .widgetShadow, radius: 5)
-                        
-                    } else {
-                        HStack {
-                            searchResultDetailWidget
-                        }
                     }
+                    .frame(minHeight: 250)
+                    .shadow(color: .widgetShadow, radius: 5)
                 }
                 
                 ZStack {
@@ -123,7 +114,19 @@ struct SearchResultDetailsView: View {
             .frame(maxWidth: .infinity)
         }
         .task {
-            // Fetch full details (description, etc) on demand
+            // Priority 1: Fetch cover upgrade if available
+            if let coverKey = searchResult.work.coverEditionKey, !coverKey.isEmpty {
+                if let betterEdition = await fetchEditionDetails(for: coverKey),
+                   let newCover = betterEdition.coverLink {
+                    withAnimation {
+                        var updated = self.searchResult
+                        updated.edition?.coverLink = newCover
+                        self.searchResult = updated
+                    }
+                }
+            }
+            
+            // Priority 2: Fetch full details (description, etc) on demand
             if searchResult.work.description == nil {
                 isLoadingDetails = true
                 if let fullDetails = await fetchCompleteBookDataByWork(for: searchResult.work, languages: ["eng"]) {
@@ -138,6 +141,7 @@ struct SearchResultDetailsView: View {
                                 authorKeys: initialResult.work.authorKeys,
                                 authorNames: initialResult.work.authorNames,
                                 coverId: initialResult.work.coverId ?? fullDetails.work.coverId,
+                                coverEditionKey: initialResult.work.coverEditionKey,
                                 medianPageCount: initialResult.work.medianPageCount,
                                 languages: initialResult.work.languages,
                                 firstPublishYear: initialResult.work.firstPublishYear,
@@ -150,7 +154,7 @@ struct SearchResultDetailsView: View {
                                 isbn_13: initialResult.edition?.isbn_13 ?? fullDetails.edition?.isbn_13,
                                 isbn_10: initialResult.edition?.isbn_10 ?? fullDetails.edition?.isbn_10,
                                 publish_date: initialResult.edition?.publish_date ?? fullDetails.edition?.publish_date, // Enriched date
-                                coverLink: initialResult.edition?.coverLink ?? fullDetails.edition?.coverLink,
+                                coverLink: self.searchResult.edition?.coverLink ?? fullDetails.edition?.coverLink,
                                 publishers: fullDetails.edition?.publishers
                             ),
                             authors: initialResult.authors,

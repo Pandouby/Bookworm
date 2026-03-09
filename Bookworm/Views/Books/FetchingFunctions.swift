@@ -98,6 +98,7 @@ func fetchCompleteBookDataByWork(for work: WorkResponse, languages: [String]) as
             authorKeys: work.authorKeys, 
             authorNames: work.authorNames,
             coverId: work.coverId,
+            coverEditionKey: work.coverEditionKey,
             medianPageCount: work.medianPageCount,
             languages: work.languages, 
             firstPublishYear: work.firstPublishYear, 
@@ -115,6 +116,25 @@ func fetchCompleteBookDataByWork(for work: WorkResponse, languages: [String]) as
         return (nil)
     }
     }
+
+func fetchEditionDetails(for editionKey: String) async -> EditionResponse? {
+    let cleanKey = editionKey.replacingOccurrences(of: "/books/", with: "")
+    guard let url = URL(string: "https://openlibrary.org/books/\(cleanKey).json") else { return nil }
+    
+    do {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        var edition = try JSONDecoder().decode(EditionResponse.self, from: data)
+        
+        if let coverId = edition.covers?.first {
+            edition.coverLink = "https://covers.openlibrary.org/b/id/\(coverId)-L.jpg"
+        }
+        
+        return edition
+    } catch {
+        print("Fetch edition error: \(error)")
+        return nil
+    }
+}
 
 func fetchCompleteBookDataByEdition(for edition: EditionResponse, languages: [String]) async -> FullSearchResult? {
     var edition = edition
@@ -173,6 +193,7 @@ func fetchCompleteBookDataByEdition(for edition: EditionResponse, languages: [St
             authorKeys: authorKeys, 
             authorNames: [authorResponse.authorName], // Derived from the fetched author
             coverId: edition.covers?.first,
+            coverEditionKey: edition.key,
             medianPageCount: edition.number_of_pages,
             languages: edition.languages?.map { $0.key } ?? [], 
             firstPublishYear: workDetails.firstPublishYear, 

@@ -32,9 +32,9 @@ func saveFullSearchResultToDB(book: FullSearchResult, status: Status) async {
             isbn13: editionData.isbn_13?.first,
             isbn10: editionData.isbn_10?.first,
             publishDate: editionData.publish_date,
-            cover: editionData.covers?.first != nil
+            cover: editionData.coverLink ?? (editionData.covers?.first != nil
             ? "https://covers.openlibrary.org/b/id/\(editionData.covers!.first!)-L.jpg"
-            : nil
+            : nil)
         )
         
         try DatabaseRepository.save(&edition)

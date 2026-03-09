@@ -11,12 +11,12 @@ struct SearchResponse: Codable {
 }
 
 struct FullSearchResult: Codable, Identifiable {
-    let work: WorkResponse
-    let edition: EditionResponse?
-    let authors: [AuthorResponse]?
-    let genre: Genre?
-    let publisher: [String]?
-    let languages: [String]?
+    var work: WorkResponse
+    var edition: EditionResponse?
+    var authors: [AuthorResponse]?
+    var genre: Genre?
+    var publisher: [String]?
+    var languages: [String]?
     
     var id: String { work.workKey }
 }

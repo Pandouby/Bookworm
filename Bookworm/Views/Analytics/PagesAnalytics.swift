@@ -13,7 +13,7 @@ import GRDBQuery
 struct PagesAnalytics: View {
     @Query(AllCompleteBooksQuery(statuses: [.done])) private var completedBooks: [CompleteBookData]
     
-    @State private var timeRange: TimeRange = .month
+    @State private var timeRange: TimeRange = .week
     @State private var baseDate: Date = Calendar.current.startOfDay(for: Date())
     @State private var selectedDate: Date?
     
@@ -31,21 +31,28 @@ struct PagesAnalytics: View {
     }
     
     private var chartData: [PageEntry] {
-        var dailyPages: [Date: Double] = [:]
+        var dailyPages: [Date: Int] = [:]
         let calendar = Calendar.current
         
         for book in completedBooks {
-            let pages = Double(book.edition.numberOfPages ?? 0)
+            let totalPages = book.edition.numberOfPages ?? 0
+            guard totalPages > 0 else { continue }
+            
             let start = calendar.startOfDay(for: book.userDetails.startDate)
             let end = calendar.startOfDay(for: book.userDetails.endDate)
             
             let components = calendar.dateComponents([.day], from: start, to: end)
             let days = max(1, (components.day ?? 0) + 1)
-            let pagesPerDay = pages / Double(days)
+            
+            // Distribute pages as integers to avoid rounding errors
+            let basePagesPerDay = totalPages / days
+            let remainder = totalPages % days
             
             for dayOffset in 0..<days {
                 if let date = calendar.date(byAdding: .day, value: dayOffset, to: start) {
-                    dailyPages[date, default: 0] += pagesPerDay
+                    // Add an extra page to the first 'remainder' days
+                    let extra = dayOffset < remainder ? 1 : 0
+                    dailyPages[date, default: 0] += (basePagesPerDay + extra)
                 }
             }
         }
@@ -63,21 +70,18 @@ struct PagesAnalytics: View {
             for (date, pages) in dailyPages {
                 if date >= range.start && date <= range.end {
                     let monthStart = calendar.dateInterval(of: .month, for: date)!.start
-                    monthlyPages[monthStart, default: 0] += pages
+                    monthlyPages[monthStart, default: 0] += Double(pages)
                 }
             }
             return monthlyPages.map { PageEntry(date: $0.key, pages: $0.value) }
                 .sorted { $0.date < $1.date }
         } else {
-            var filteredPages = dailyPages.filter { date, _ in
-                date >= range.start && date <= range.end
-            }
+            var filteredPages: [Date: Double] = [:]
             var checkDate = range.start
             while checkDate <= range.end {
                 let dayStart = calendar.startOfDay(for: checkDate)
-                if filteredPages[dayStart] == nil {
-                    filteredPages[dayStart] = 0.0
-                }
+                filteredPages[dayStart] = Double(dailyPages[dayStart] ?? 0)
+                
                 guard let nextDate = calendar.date(byAdding: .day, value: 1, to: checkDate) else { break }
                 checkDate = nextDate
             }

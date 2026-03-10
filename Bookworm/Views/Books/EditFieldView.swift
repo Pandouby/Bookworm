@@ -16,17 +16,36 @@ struct EditFieldView: View {
     @State private var tempValue: String = ""
 
     var body: some View {
-        Form {
-            TextField(fieldName, text: $tempValue)
-                .focused($isFocused)
-                .modifier(TextFieldClearButton(inputValue: $tempValue))
-                .multilineTextAlignment(.leading)
-                .scrollDismissesKeyboard(.automatic)
-                .onSubmit {
-                    updateValue()
-                }
+        ZStack {
+            Color(UIColor.systemGroupedBackground)
+                .ignoresSafeArea()
+            
+            VStack(alignment: .leading, spacing: 12) {
+                Text(fieldName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal)
+
+                TextEditor(text: $tempValue)
+                    .focused($isFocused)
+                    .frame(minHeight: 125) // Approx 5 lines of text
+                    .padding(8)
+                    .scrollContentBackground(.hidden)
+                    .background(Color(UIColor { traitCollection in
+                        return traitCollection.userInterfaceStyle == .dark 
+                            ? .systemGray5 
+                            : .systemGray6 
+                    }))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                Spacer()
+            }
+            .padding(.top)
         }
         .navigationTitle("Edit \(fieldName)")
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             tempValue = inputValue
             isFocused = true

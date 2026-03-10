@@ -12,7 +12,9 @@ import GRDBQuery
 import GRDB
 
 struct BookDetailsView: View {
+    @Environment(\.dismiss) var dismiss
     @Bindable var book: CompleteBookDataViewModel
+    @State private var showingDeleteConfirmation = false
 
     @ViewBuilder
     private var headerView: some View {
@@ -50,56 +52,126 @@ struct BookDetailsView: View {
                     .zIndex(0)
                 
                 // Main Content Card
-                VStack(spacing: 0) {
-                    Form {
-                        Section {
+                VStack(spacing: 20) {
+                    Spacer(minLength: 15) // Extra space at the top of the card
+                    
+                    // First Section: Book Info
+                    VStack(spacing: 0) {
+                        if book.workTitle.count > 25 {
                             NavigationLink(
                                 destination: EditFieldView(
                                     fieldName: "Title", inputValue: $book.workTitle)
                             ) {
                                 HStack {
                                     Text("Title")
+                                        .foregroundStyle(.primary)
+                                        .frame(width: 80, alignment: .leading)
                                     Spacer()
                                     Text(book.workTitle)
+                                        .foregroundStyle(.secondary)
+                                        .multilineTextAlignment(.trailing)
+                                        .lineLimit(1)
+                                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
                                 }
+                                .padding()
                             }
-                            .onChange(of: book.workTitle) {
-                                saveData(book: book)
+                            .onChange(of: book.workTitle) { saveData(book: book) }
+                        } else {
+                            HStack {
+                                Text("Title")
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 80, alignment: .leading)
+                                Spacer()
+                                TextField("Title", text: $book.workTitle)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.trailing)
+                                    .onChange(of: book.workTitle) { saveData(book: book) }
                             }
+                            .padding()
+                        }
 
+                        Divider().padding(.leading)
+
+                        if book.authorName.count > 25 {
                             NavigationLink(
                                 destination: EditFieldView(
                                     fieldName: "Author", inputValue: $book.authorName)
                             ) {
                                 HStack {
                                     Text("Author")
+                                        .foregroundStyle(.primary)
+                                        .frame(width: 80, alignment: .leading)
                                     Spacer()
                                     Text(book.authorName)
+                                        .foregroundStyle(.secondary)
+                                        .multilineTextAlignment(.trailing)
+                                        .lineLimit(1)
+                                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
                                 }
+                                .padding()
                             }
-                            .onChange(of: book.authorName) {
-                                saveData(book: book)
+                            .onChange(of: book.authorName) { saveData(book: book) }
+                        } else {
+                            HStack {
+                                Text("Author")
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 80, alignment: .leading)
+                                Spacer()
+                                TextField("Author", text: $book.authorName)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.trailing)
+                                    .onChange(of: book.authorName) { saveData(book: book) }
                             }
+                            .padding()
+                        }
 
+                        Divider().padding(.leading)
+
+                        HStack {
+                            Text("Genre")
+                                .foregroundStyle(.primary)
+                                .frame(width: 80, alignment: .leading)
+                            
+                            Spacer()
+                            
                             Picker("Genre", selection: $book.genre) {
                                 ForEach(Genre.allCases) { genre in
                                     Text(genre.rawValue)
+                                        .lineLimit(1)
                                 }
                             }
-                            .pickerStyle(.navigationLink)
-                            .onChange(of: book.genre) {
-                                print(book.genre)
-                                saveData(book: book)
-                            }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                        }
+                        .padding(.leading)
+                        .frame(minHeight: 44)
+                        .onChange(of: book.genre) { saveData(book: book) }
 
+                        Divider().padding(.leading)
+
+                        HStack {
+                            Text("Pages")
+                                .foregroundStyle(.primary)
+                                .frame(width: 80, alignment: .leading)
+                            Spacer()
                             TextField("Pages", value: $book.pageCount, format: .number)
                                 .keyboardType(.asciiCapableNumberPad)
-                                .onChange(of: book.pageCount) {
-                                    saveData(book: book)
-                                }
+                                .multilineTextAlignment(.trailing)
+                                .foregroundStyle(.secondary)
                         }
+                        .padding()
+                        .onChange(of: book.pageCount) { saveData(book: book) }
+                    }
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
 
-                        Section {
+                    // Second Section: Reading Status
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text("Status")
+                                .foregroundStyle(.primary)
+                            Spacer()
                             Picker("Status", selection: $book.status) {
                                 ForEach(Status.allCases) { status in
                                     HStack {
@@ -109,58 +181,75 @@ struct BookDetailsView: View {
                                 }
                             }
                             .pickerStyle(.menu)
-                            .onChange(of: book.status) {
-                                saveData(book: book)
-                            }
-
-                            RatingView($book.userRating, maxRating: 5).padding(5)
-                                .onChange(of: book.userRating) {
-                                    saveData(book: book)
-                                }
-
-                            LabeledContent {
-                                DatePicker(
-                                    "Started",
-                                    selection: $book.startDate, displayedComponents: .date
-                                )
-                                .labelsHidden()
-                            } label: {
-                                Text("Started")
-                            }
-                            .onChange(of: book.startDate) {
-                                saveData(book: book)
-                            }
-                            
-                            LabeledContent {
-                                DatePicker(
-                                    "Finished",
-                                    selection: $book.endDate, displayedComponents: .date
-                                )
-                                .labelsHidden()
-                            } label: {
-                                Text("Finished")
-                            }
-                            .onChange(of: book.endDate) {
-                                saveData(book: book)
-                            }
-
-                            VStack(alignment: .leading) {
-                                Text("Notes")
-                                TextEditor(text: $book.notes)
-                                    .frame(height: 200)  // Set a height for better visibility
-                                    .padding()
-                                    .background(Color(UIColor.systemGray5))  // Background for TextEditor
-                                    .cornerRadius(10)  // Rounded corners for aesthetics
-                            }
-                            .onChange(of: book.notes) {
-                                saveData(book: book)
-                            }
                         }
+                        .padding()
+                        .onChange(of: book.status) { saveData(book: book) }
+
+                        Divider().padding(.leading)
+
+                        RatingView($book.userRating, maxRating: 5)
+                            .padding()
+                            .onChange(of: book.userRating) { saveData(book: book) }
+
+                        Divider().padding(.leading)
+
+                        DatePicker("Started", selection: $book.startDate, displayedComponents: .date)
+                            .foregroundStyle(.primary)
+                            .padding()
+                            .onChange(of: book.startDate) { saveData(book: book) }
+
+                        Divider().padding(.leading)
+
+                        DatePicker("Finished", selection: $book.endDate, displayedComponents: .date)
+                            .foregroundStyle(.primary)
+                            .padding()
+                            .onChange(of: book.endDate) { saveData(book: book) }
+
+                        Divider().padding(.leading)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Notes")
+                                .foregroundStyle(.primary)
+                                .frame(width: 80, alignment: .leading)
+                            TextEditor(text: $book.notes)
+                                .frame(height: 150) // Approx 6 lines of text
+                                .padding(8)
+                                .scrollContentBackground(.hidden) 
+                                .background(Color(UIColor { traitCollection in
+                                    return traitCollection.userInterfaceStyle == .dark 
+                                        ? .systemGray5 
+                                        : .systemGray6 
+                                }))
+                                .cornerRadius(8)
+                        }
+                        .padding()
+                        .onChange(of: book.notes) { saveData(book: book) }
                     }
-                    .scrollDisabled(true)
-                    .frame(height: 850)
-                    .padding(.top, -35)
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+
+                    // Delete Button Section
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "trash")
+                            Text("Delete Book")
+                            Spacer()
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.red)
+                        .clipShape(Capsule())
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+                    .padding(.bottom, 40)
                 }
+                .padding(.top, -35)
                 .background(Color(UIColor.systemGroupedBackground))
                 .clipShape(RoundedCorner(radius: 30, corners: [.topLeft, .topRight]))
                 .zIndex(1)
@@ -169,6 +258,22 @@ struct BookDetailsView: View {
         .scrollIndicators(.hidden)
         .background(Color(UIColor.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+        .confirmationDialog("Are you sure you want to delete this book?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete Book", role: .destructive) {
+                Task {
+                    do {
+                        try DatabaseRepository.deleteCompleteBook(book.asRecord)
+                        dismiss()
+                    } catch {
+                        print("Failed to delete book: \(error)")
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         .toolbar {
             ToolbarItem {
                 Button {

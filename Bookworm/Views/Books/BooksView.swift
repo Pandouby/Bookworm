@@ -6,8 +6,9 @@ struct BooksView: View {
     @Query(AllCompleteBooksQuery()) private var completeBooks: [CompleteBookData]
 
     var body: some View {
+        let currentBook = completeBooks.first { $0.userDetails.status == .inProgress }
         NavigationStack {
-            VStack(alignment: .leading, spacing: 15) {
+            VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading) {
                     Text(
                         "\(dateStringFormatter(date: Date(), formattingString: "EEEE, MMMM dd", isUppercase: true))"
@@ -67,6 +68,7 @@ struct BooksView: View {
                             }
                             .padding()
                         }
+                        .frame(maxWidth: .infinity)
                         .frame(height: 200)
                         .shadow(color: .widgetShadow, radius: 10)
                     }
@@ -119,6 +121,7 @@ struct BooksView: View {
                             .padding()
 
                         }
+                        .frame(maxWidth: .infinity)
                         .frame(height: 200)
                         .shadow(color: .widgetShadow, radius: 10)
                     }

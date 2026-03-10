@@ -15,19 +15,6 @@ import GRDB
 struct OwnedBooksView: View {
     @Query(AllCompleteBooksQuery(statuses: [.toDo, .inProgress, .onPause, .done])) var completeBooks: [CompleteBookData]
     
-    var ownedBooks: [CompleteBookDataViewModel] {
-        completeBooks
-            .map { .init(from: $0) }
-            .filter { book in
-                let matchesFavorite = !filterFavoritesOnly || book.isFavorite
-                let matchesStatus = selectedStatusFilter == nil || book.status == selectedStatusFilter
-                let matchesGenre = selectedGenreFilter == nil || book.genre == selectedGenreFilter
-                
-                return matchesFavorite && matchesStatus && matchesGenre
-            }
-            .sorted()
-    }
-
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
     @State private var showBookNotFoundAlert = false
@@ -37,7 +24,37 @@ struct OwnedBooksView: View {
     @State private var filterFavoritesOnly = false
     @State private var selectedStatusFilter: Status? = nil
     @State private var selectedGenreFilter: Genre? = nil
+    @State private var selectedRatingFilter: Double? = nil
     
+    enum SortOption: String, CaseIterable, Identifiable {
+        case title = "Title"
+        case ratingHigh = "Rating"
+        case ratingLow = "Rating "
+        case dateFinished = "Date Finished"
+        
+        var id: String { self.rawValue }
+
+        var label: String {
+            switch self {
+            case .title: return "Title"
+            case .ratingHigh: return "Rating"
+            case .ratingLow: return "Rating"
+            case .dateFinished: return "Date Finished"
+            }
+        }
+
+        var icon: String? {
+            switch self {
+            case .title: return "book.closed.fill"
+            case .ratingHigh: return "chevron.down"
+            case .ratingLow: return "chevron.up"
+            case .dateFinished: return "calendar"
+            default: return nil
+            }
+        }
+    }
+    
+    @State private var selectedSortOption: SortOption = .title
     @State private var showFavoriteDeleteDialog = false
     @State private var favoriteBookToDelete: CompleteBookDataViewModel?
     @State private var favoriteOffsetsToDelete: IndexSet?
@@ -47,86 +64,123 @@ struct OwnedBooksView: View {
     @State var searchResults: [CompleteBookDataViewModel] = []
     @State var searchQuery: String = ""
 
+    var ownedBooks: [CompleteBookDataViewModel] {
+        let mapped = completeBooks
+            .map { CompleteBookDataViewModel(from: $0) }
+            .filter { book in
+                let matchesFavorite = !filterFavoritesOnly || book.isFavorite
+                let matchesStatus = selectedStatusFilter == nil || book.status == selectedStatusFilter
+                let matchesGenre = selectedGenreFilter == nil || book.genre == selectedGenreFilter
+                let matchesRating = selectedRatingFilter == nil || book.userRating == selectedRatingFilter
+                
+                return matchesFavorite && matchesStatus && matchesGenre && matchesRating
+            }
+        
+        switch selectedSortOption {
+        case .title:
+            return mapped.sorted()
+        case .ratingHigh:
+            return mapped.sorted { $0.userRating > $1.userRating }
+        case .ratingLow:
+            return mapped.sorted { $0.userRating < $1.userRating }
+        case .dateFinished:
+            return mapped.sorted { $0.endDate > $1.endDate }
+        }
+    }
+
     var isSearching: Bool {
         return !searchQuery.isEmpty
     }
     
     var isFiltering: Bool {
-        filterFavoritesOnly || selectedStatusFilter != nil || selectedGenreFilter != nil
+        filterFavoritesOnly || selectedStatusFilter != nil || selectedGenreFilter != nil || selectedRatingFilter != nil
     }
 
     var body: some View {        
-                    List {
-                        if isFiltering {
-                            Section {
-                                Button(action: {
-                                    withAnimation {
-                                        filterFavoritesOnly = false
-                                        selectedStatusFilter = nil
-                                        selectedGenreFilter = nil
-                                    }
-                                }) {
-                                    Label("Clear all filters", systemImage: "xmark.circle")
-                                        .foregroundColor(.accentColor)
+        List {
+            if isFiltering {
+                Section {
+                    Button(action: {
+                        withAnimation {
+                            filterFavoritesOnly = false
+                            selectedStatusFilter = nil
+                            selectedGenreFilter = nil
+                            selectedRatingFilter = nil
+                        }
+                    }) {
+                        Label("Clear all filters", systemImage: "xmark.circle")
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
+            
+            ForEach(isSearching ? searchResults: ownedBooks) { book in
+                NavigationLink(destination: BookDetailsView(book: book)) {
+                    HStack(spacing: 12) {
+                        // Book Cover with local caching
+                        BookCoverView(coverURL: book.cover, editionKey: book.editionKey)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 40, height: 60)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(book.workTitle)
+                                    .font(.system(.headline, design: .rounded))
+                                    .lineLimit(1)
+                                
+                                if book.isFavorite {
+                                    Image(systemName: "heart.fill")
+                                        .font(.caption2)
+                                        .foregroundStyle(.red)
                                 }
+                            }
+                            
+                            Text(book.authorName)
+                                .font(.system(.subheadline, design: .rounded))
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                            
+                            if selectedSortOption == .ratingHigh || selectedSortOption == .ratingLow || selectedRatingFilter != nil {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "star.fill")
+                                        .foregroundStyle(.orange)
+                                    Text(String(format: "%.1f", book.userRating))
+                                }
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                             }
                         }
                         
-                                        ForEach(isSearching ? searchResults: ownedBooks) { book in
-                                            NavigationLink(destination: BookDetailsView(book: book)) {
-                                                HStack(spacing: 12) {
-                                                    // Book Cover with local caching
-                                                    BookCoverView(coverURL: book.cover, editionKey: book.editionKey)
-                                                        .aspectRatio(contentMode: .fill)
-                                                        .frame(width: 40, height: 60)
-                                                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                                                    
-                                                    VStack(alignment: .leading, spacing: 4) {                                        HStack {
-                                            Text(book.workTitle)
-                                                .font(.system(.headline, design: .rounded))
-                                                .lineLimit(1)
-                                            
-                                            if book.isFavorite {
-                                                Image(systemName: "heart.fill")
-                                                    .font(.caption2)
-                                                    .foregroundStyle(.red)
-                                            }
-                                        }
-                                        
-                                        Text(book.authorName)
-                                            .font(.system(.subheadline, design: .rounded))
-                                            .foregroundColor(.secondary)
-                                            .lineLimit(1)
-                                    }
-        
-                                    Spacer()
-        
-                                    StatusIcon(status: book.status, iconSize: 24)
-                                }
-                            }
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                Button("Done") {
-                                    book.status = Status.done
-                                    Task {
-                                        try DatabaseRepository.saveCompleteBook(book.asRecord)
-                                    }
-                                }
-                                .tint(.done)
-                            }
-                            .swipeActions(edge: .leading) {
-                                Button("Reading") {
-                                    book.status = Status.inProgress
-                                    Task {
-                                        try DatabaseRepository.saveCompleteBook(book.asRecord)
-                                    }
-                                }
-                                .tint(.inProgress)
-                            }
+                        Spacer()
+                        
+                        StatusIcon(status: book.status, iconSize: 24)
+                    }
+                }
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    Button("Done") {
+                        book.status = Status.done
+                        Task {
+                            try DatabaseRepository.saveCompleteBook(book.asRecord)
                         }
-                        .onDelete { offsets in
-                            handleDelete(offsets: offsets)
+                    }
+                    .tint(.done)
+                }
+                .swipeActions(edge: .leading) {
+                    Button("Reading") {
+                        book.status = Status.inProgress
+                        Task {
+                            try DatabaseRepository.saveCompleteBook(book.asRecord)
                         }
-                    }        .confirmationDialog(
+                    }
+                    .tint(.inProgress)
+                }
+            }
+            .onDelete { offsets in
+                handleDelete(offsets: offsets)
+            }
+        }
+        .confirmationDialog(
             "Delete Favorite Book?",
             isPresented: $showFavoriteDeleteDialog,
             titleVisibility: .visible
@@ -154,48 +208,74 @@ struct OwnedBooksView: View {
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
-                    Toggle(isOn: $filterFavoritesOnly) {
-                        Label("Favorites Only", systemImage: "heart.fill")
+                    Section("Sort") {
+                        Picker("Sort Order", selection: $selectedSortOption) {
+                            ForEach(SortOption.allCases) { option in
+                                Label(option.label, systemImage: option.icon ?? "")
+                                    .tag(option)
+                            }
+                        }
                     }
-                    
-                    Divider()
-                    
-                    Menu {
-                        Button("All") { selectedStatusFilter = nil }
-                        ForEach(Status.allCases.filter { $0 != .wantToRead }) { status in
-                            Button {
-                                selectedStatusFilter = status
-                            } label: {
-                                HStack {
-                                    Text(status.rawValue)
-                                    if selectedStatusFilter == status {
-                                        Image(systemName: "checkmark")
+
+                    Section("Filter") {
+                        Toggle(isOn: $filterFavoritesOnly) {
+                            Label("Favorites Only", systemImage: "heart.fill")
+                        }
+                        
+                        Menu {
+                            Button("All") { selectedStatusFilter = nil }
+                            ForEach(Status.allCases.filter { $0 != .wantToRead }) { status in
+                                Button {
+                                    selectedStatusFilter = status
+                                } label: {
+                                    HStack {
+                                        Text(status.rawValue)
+                                        if selectedStatusFilter == status {
+                                            Image(systemName: "checkmark")
+                                        }
                                     }
                                 }
                             }
+                        } label: {
+                            Label("Status", systemImage: "checklist")
                         }
-                    } label: {
-                        Label("Filter by Status", systemImage: "checklist")
-                    }
-                    
-                    Menu {
-                        Button("All") { selectedGenreFilter = nil }
-                        ForEach(Genre.allCases) { genre in
-                            Button {
-                                selectedGenreFilter = genre
-                            } label: {
-                                HStack {
-                                    Text(genre.rawValue)
-                                    if selectedGenreFilter == genre {
-                                        Image(systemName: "checkmark")
+                        
+                        Menu {
+                            Button("All") { selectedGenreFilter = nil }
+                            ForEach(Genre.allCases) { genre in
+                                Button {
+                                    selectedGenreFilter = genre
+                                } label: {
+                                    HStack {
+                                        Text(genre.rawValue)
+                                        if selectedGenreFilter == genre {
+                                            Image(systemName: "checkmark")
+                                        }
                                     }
                                 }
                             }
+                        } label: {
+                            Label("Genre", systemImage: "books.vertical")
                         }
-                    } label: {
-                        Label("Filter by Genre", systemImage: "books.vertical")
+
+                        Menu {
+                            Button("All") { selectedRatingFilter = nil }
+                            ForEach(Array(stride(from: 5.0, through: 0.0, by: -0.5)), id: \.self) { rating in
+                                Button {
+                                    selectedRatingFilter = rating
+                                } label: {
+                                    HStack {
+                                        Text(String(format: "%.1f", rating))
+                                        if selectedRatingFilter == rating {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            Label("Rating", systemImage: "star.fill")
+                        }
                     }
-                    
                 } label: {
                     Image(systemName: isFiltering ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                         .foregroundColor(isFiltering ? .accentColor : .primary)

@@ -172,28 +172,12 @@ struct BooksView: View {
 
                             if let currentBook = currentBook {
                                 HStack(alignment: .top, spacing: 16) {
-                                    // Cover Image or Placeholder
-                                    if let cover = currentBook.edition.cover, let url = URL(string: cover) {
-                                        AsyncImage(url: url) { image in
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                        } placeholder: {
-                                            Color.white.opacity(0.1)
-                                        }
+                                    // Cover Image using cached BookCoverView
+                                    BookCoverView(coverURL: currentBook.edition.cover, editionKey: currentBook.edition.editionKey)
+                                        .aspectRatio(contentMode: .fill)
                                         .frame(width: 94, height: 140)
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                         .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
-                                    } else {
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.white.opacity(0.15))
-                                            Image(systemName: "book.closed.fill")
-                                                .font(.system(size: 30))
-                                                .foregroundColor(.white.opacity(0.4))
-                                        }
-                                        .frame(width: 94, height: 140)
-                                    }
 
                                     // Book Details
                                     VStack(alignment: .leading, spacing: 4) {
